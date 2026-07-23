@@ -56,55 +56,41 @@ A WhatsApp bot for tracking tree planting box drops and allocations. Designed fo
 
 - Node.js 18+ installed
 - GitHub account
-- Meta (Facebook) Developer account
+- Twilio account with WhatsApp-enabled number
 - Railway account (for hosting)
 
 ---
 
-## Part 1: WhatsApp Business API Setup
+## Part 1: Twilio WhatsApp Setup
 
-### Step 1: Create Meta Developer Account
+### Step 1: Create Twilio Account
 
-1. Go to https://developers.facebook.com
-2. Click **"Get Started"** and login with Facebook
-3. Complete developer account setup
+1. Go to https://console.twilio.com
+2. Sign up for a free account
+3. Verify your email and phone number
 
-### Step 2: Create App
+### Step 2: Get Credentials
 
-1. Go to **My Apps** → **Create App**
-2. Select **"Business"** type
-3. Enter app name: `"Tree Planting Bot"`
-4. Create app
+1. In the Twilio Console Dashboard, find:
+   - **Account SID** (starts with `AC`)
+   - **Auth Token** (click to reveal)
+2. Copy and save both values
 
-### Step 3: Add WhatsApp Product
+### Step 3: Get WhatsApp Number
 
-1. In your app dashboard, click **"Add Product"**
-2. Find **WhatsApp** and click **"Set Up"**
-3. Select or create a Meta Business account
+1. Go to **Messaging** → **WhatsApp Senders**
+2. Click **"Buy a Number"** or use an existing number
+3. Ensure the number is WhatsApp-enabled
+4. Note the number in E.164 format: `+14155238886`
 
-### Step 4: Get API Credentials
+### Step 4: Configure Webhook (After Deployment)
 
-1. Go to **WhatsApp** → **Configuration**
-2. Note down:
-   - **Phone Number ID** (found in WhatsApp accounts)
-   - **Temporary Access Token** (click "Generate Token")
-
-> **Note:** The temporary token expires after 24 hours. For production, you'll need to create a System User and get a permanent token.
-
-### Step 5: Create Permanent Token (Recommended)
-
-1. Go to **Business Settings** → **System Users**
-2. Click **"Add"** to create a system user
-3. Add assets: Select your app → WhatsApp accounts
-4. Generate token with `whatsapp_business_messaging` permission
-5. Copy and save this token permanently
-
-### Step 6: Add Test Phone Number
-
-1. In WhatsApp Configuration, scroll to **"Phone Numbers"**
-2. Click **"Add Phone Number"**
-3. Follow the verification steps
-4. Note the phone number ID
+1. Go to **Messaging** → **WhatsApp Senders**
+2. Click on your WhatsApp number
+3. Under **"Webhook Configuration"**, set:
+   - **When a message comes in**: `https://your-app.up.railway.app/whatsapp`
+   - Method: **HTTP POST**
+4. Click **Save**
 
 ---
 
@@ -178,10 +164,10 @@ A WhatsApp bot for tracking tree planting box drops and allocations. Designed fo
 ### Create `.env` File
 
 ```env
-# WhatsApp API (Required)
-WHATSAPP_TOKEN=your_permanent_token_here
-WHATSAPP_PHONE_ID=your_phone_number_id_here
-VERIFY_TOKEN=any_random_string_here
+# Twilio WhatsApp (Required)
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=your_auth_token_here
+TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
 
 # Google Sheets (Optional)
 GOOGLE_SHEETS_ID=your_spreadsheet_id_here
@@ -189,13 +175,6 @@ GOOGLE_SERVICE_ACCOUNT_KEY=credentials/google-sheets.json
 
 # Server
 PORT=3000
-```
-
-### Generate Verify Token
-
-Run this in terminal to generate a random token:
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ---
@@ -248,9 +227,9 @@ git push -u origin main
 1. In Railway dashboard, go to **"Variables"** tab
 2. Add each variable from your `.env`:
    ```
-   WHATSAPP_TOKEN = your_token
-   WHATSAPP_PHONE_ID = your_phone_id
-   VERIFY_TOKEN = your_verify_token
+   TWILIO_ACCOUNT_SID = ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+   TWILIO_AUTH_TOKEN = your_auth_token
+   TWILIO_WHATSAPP_NUMBER = whatsapp:+14155238886
    GOOGLE_SHEETS_ID = your_sheet_id (if using sheets)
    ```
 
@@ -265,29 +244,22 @@ git push -u origin main
 
 Your webhook URL will be:
 ```
-https://your-app-name.up.railway.app/webhook
+https://your-app-name.up.railway.app/whatsapp
 ```
 
 ---
 
-## Part 6: Configure WhatsApp Webhook
+## Part 6: Configure Twilio Webhook
 
 ### Step 1: Set Webhook URL
 
-1. Go to Meta Developer Dashboard
-2. Navigate to **WhatsApp** → **Configuration**
-3. Under **"Webhook"**, click **"Edit"**
-4. Enter:
-   - **Callback URL:** `https://your-app.up.railway.app/webhook`
-   - **Verify Token:** (same as in your `.env`)
-5. Click **"Verify and Save"**
-
-### Step 2: Subscribe to Messages
-
-1. Still in WhatsApp Configuration
-2. Under **"Webhook"** → **"Subscribe"**
-3. Select: **`messages`**
-4. Click **"Subscribe"**
+1. Go to Twilio Console
+2. Navigate to **Messaging** → **WhatsApp Senders**
+3. Click on your WhatsApp number
+4. Under **"Webhook Configuration"**:
+   - **When a message comes in**: `https://your-app.up.railway.app/whatsapp`
+   - Method: **HTTP POST**
+5. Click **Save**
 
 ---
 
@@ -295,7 +267,7 @@ https://your-app-name.up.railway.app/webhook
 
 ### Step 1: Send Test Message
 
-1. Send WhatsApp message to your test number
+1. Send WhatsApp message to your Twilio WhatsApp number
 2. Message: `/help`
 3. Bot should respond with command list
 
@@ -323,9 +295,15 @@ https://your-app-name.up.railway.app/webhook
 ### Bot Not Responding
 
 1. Check Railway logs for errors
-2. Verify webhook URL is correct
-3. Ensure verify token matches
-4. Check WhatsApp API token is valid
+2. Verify webhook URL is correct (ends with `/whatsapp`)
+3. Ensure Twilio credentials are correct
+4. Check that your WhatsApp number is verified in Twilio
+
+### Twilio Errors
+
+- **"Authentication Error"**: Check Account SID and Auth Token
+- **"Invalid number"**: Ensure number is in `whatsapp:+14155238886` format
+- **"Unverified number"**: For sandbox, users must join first
 
 ### Google Sheets Not Syncing
 
@@ -363,7 +341,7 @@ npm start
 whatsapp-tree-bot/
 ├── src/
 │   ├── index.js          # Express server, webhook
-│   ├── whatsapp.js       # WhatsApp API client
+│   ├── whatsapp.js       # Twilio WhatsApp client
 │   ├── parser.js         # Command parsing
 │   ├── database.js       # SQLite operations
 │   ├── sheets.js         # Google Sheets API

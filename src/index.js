@@ -1,14 +1,15 @@
 require('dotenv').config();
 const express = require('express');
 const { parseCommand } = require('./parser');
-const { sendWhatsAppMessage, extractMessageData } = require('./whatsapp');
+const { extractMessageData, generateTwiML } = require('./whatsapp');
 const commands = require('./commands');
 const sheets = require('./sheets');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+// Twilio sends form-encoded data
+app.use(express.urlencoded({ extended: false }));
 
 // Initialize Google Sheets on startup
 sheets.initializeSheets().then(success => {
@@ -19,27 +20,12 @@ sheets.initializeSheets().then(success => {
   }
 });
 
-// Webhook verification
-app.get('/webhook', (req, res) => {
-  const mode = req.query['hub.mode'];
-  const token = req.query['hub.verify_token'];
-  const challenge = req.query['hub.challenge'];
-  
-  if (mode === 'subscribe' && token === process.env.VERIFY_TOKEN) {
-    console.log('Webhook verified');
-    res.status(200).send(challenge);
-  } else {
-    res.sendStatus(403);
-  }
-});
-
-// Webhook handler
-app.post('/webhook', async (req, res) => {
-  res.sendStatus(200);
-  
+// WhatsApp webhook (Twilio)
+app.post('/whatsapp', async (req, res) => {
   const messageData = extractMessageData(req.body);
   
   if (!messageData || !messageData.text) {
+    res.type('text/xml').send(generateTwiML(''));
     return;
   }
   
@@ -47,13 +33,14 @@ app.post('/webhook', async (req, res) => {
   
   // Only process commands starting with /
   if (!messageData.text.startsWith('/')) {
+    res.type('text/xml').send(generateTwiML(''));
     return;
   }
   
   const parsed = parseCommand(messageData.text);
   
   if (!parsed) {
-    await sendWhatsAppMessage(messageData.from, '❌ Unknown command. Type /help for available commands.');
+    res.type('text/xml').send(generateTwiML('❌ Unknown command. Type /help for available commands.'));
     return;
   }
   
@@ -61,18 +48,16 @@ app.post('/webhook', async (req, res) => {
   const handler = commands[parsed.command];
   
   if (!handler) {
-    await sendWhatsAppMessage(messageData.from, '❌ Command not implemented yet.');
+    res.type('text/xml').send(generateTwiML('❌ Command not implemented yet.'));
     return;
   }
   
   try {
     const response = await handler(parsed.args, messageData.from, messageData.contactName);
-    if (response) {
-      await sendWhatsAppMessage(messageData.from, response);
-    }
+    res.type('text/xml').send(generateTwiML(response || ''));
   } catch (error) {
     console.error(`Error handling command ${parsed.command}:`, error);
-    await sendWhatsAppMessage(messageData.from, '❌ An error occurred. Please try again.');
+    res.type('text/xml').send(generateTwiML('❌ An error occurred. Please try again.'));
   }
 });
 

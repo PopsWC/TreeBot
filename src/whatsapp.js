@@ -1,61 +1,53 @@
-const fetch = require('node-fetch');
+const twilio = require('twilio');
+const MessagingResponse = require('twilio').twiml.MessagingResponse;
 
-const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
-const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_ID;
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const TWILIO_WHATSAPP = process.env.TWILIO_WHATSAPP_NUMBER;
+
+let client = null;
+
+function getClient() {
+  if (!client && accountSid && authToken) {
+    client = twilio(accountSid, authToken);
+  }
+  return client;
+}
 
 async function sendWhatsAppMessage(to, message) {
-  const url = `https://graph.facebook.com/v17.0/${PHONE_NUMBER_ID}/messages`;
+  const twilioClient = getClient();
+  
+  if (!twilioClient) {
+    console.error('Twilio client not initialized');
+    return false;
+  }
   
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${WHATSAPP_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to: to,
-        type: 'text',
-        text: {
-          body: message
-        }
-      })
+    await twilioClient.messages.create({
+      body: message,
+      from: TWILIO_WHATSAPP,
+      to: `whatsapp:${to}`
     });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      console.error('WhatsApp API error:', data);
-      return false;
-    }
-    
     return true;
   } catch (error) {
-    console.error('Error sending WhatsApp message:', error);
+    console.error('Error sending WhatsApp message:', error.message);
     return false;
   }
 }
 
 function extractMessageData(body) {
   try {
-    const entry = body.entry?.[0];
-    const changes = entry?.changes?.[0];
-    const value = changes?.value;
-    
-    if (!value?.messages?.[0]) {
-      return null;
-    }
-    
-    const message = value.messages[0];
-    const contact = value.contacts?.[0];
+    const from = body.From || '';
+    const phoneNumber = from.replace('whatsapp:', '');
+    const text = body.Body || '';
+    const contactName = body.ProfileName || 'Unknown';
     
     return {
-      from: message.from,
-      messageId: message.id,
-      text: message.text?.body,
-      contactName: contact?.profile?.name || 'Unknown',
-      timestamp: message.timestamp
+      from: phoneNumber,
+      text: text,
+      contactName: contactName,
+      messageId: body.MessageSid,
+      timestamp: body.Timestamp
     };
   } catch (error) {
     console.error('Error extracting message data:', error);
@@ -63,7 +55,14 @@ function extractMessageData(body) {
   }
 }
 
+function generateTwiML(message) {
+  const twiml = new MessagingResponse();
+  twiml.message(message);
+  return twiml.toString();
+}
+
 module.exports = {
   sendWhatsAppMessage,
-  extractMessageData
+  extractMessageData,
+  generateTwiML
 };
