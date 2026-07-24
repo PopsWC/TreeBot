@@ -1,34 +1,25 @@
 const { google } = require('googleapis');
-const path = require('path');
-const fs = require('fs');
 
 let sheets = null;
 let spreadsheetId = null;
 
 // Initialize Google Sheets API
 async function initializeSheets() {
-  const keyFilePath = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+  const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
   spreadsheetId = process.env.GOOGLE_SHEETS_ID;
   
-  if (!keyFilePath || !spreadsheetId) {
-    console.log('Google Sheets not configured (missing credentials or sheet ID)');
+  if (!credentialsJson || !spreadsheetId) {
+    console.log('Google Sheets not configured (missing GOOGLE_SERVICE_ACCOUNT_KEY or GOOGLE_SHEETS_ID)');
     return false;
   }
   
   try {
-    // Read the service account key file
-    const keyPath = path.resolve(keyFilePath);
-    
-    if (!fs.existsSync(keyPath)) {
-      console.error('Service account key file not found:', keyPath);
-      return false;
-    }
-    
-    const keyFile = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
+    // Parse credentials from environment variable (raw JSON string)
+    const credentials = JSON.parse(credentialsJson);
     
     // Create auth client
     const auth = new google.auth.GoogleAuth({
-      credentials: keyFile,
+      credentials,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
     
@@ -39,6 +30,9 @@ async function initializeSheets() {
     return true;
   } catch (error) {
     console.error('Error initializing Google Sheets:', error.message);
+    if (error.message.includes('JSON')) {
+      console.error('Hint: GOOGLE_SERVICE_ACCOUNT_KEY should be the raw JSON content, not a file path');
+    }
     return false;
   }
 }
