@@ -3,6 +3,8 @@ const { google } = require('googleapis');
 let sheets = null;
 let spreadsheetId = null;
 
+const REQUIRED_TABS = ['Inventory', 'Allocations', 'Drop History', 'Activity Log', 'Sections'];
+
 // Initialize Google Sheets API
 async function initializeSheets() {
   const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
@@ -26,6 +28,9 @@ async function initializeSheets() {
     // Create sheets instance
     sheets = google.sheets({ version: 'v4', auth });
     
+    // Ensure required tabs exist
+    await ensureTabs();
+    
     console.log('Google Sheets API initialized successfully');
     return true;
   } catch (error) {
@@ -35,6 +40,41 @@ async function initializeSheets() {
     }
     return false;
   }
+}
+
+// Get list of existing tab names
+async function getExistingTabs() {
+  const response = await sheets.spreadsheets.get({
+    spreadsheetId,
+    fields: 'sheets.properties.title',
+  });
+  return response.data.sheets.map(s => s.properties.title);
+}
+
+// Create missing tabs
+async function ensureTabs() {
+  const existingTabs = await getExistingTabs();
+  const missingTabs = REQUIRED_TABS.filter(tab => !existingTabs.includes(tab));
+  
+  if (missingTabs.length === 0) {
+    console.log('All required tabs exist');
+    return;
+  }
+  
+  console.log(`Creating missing tabs: ${missingTabs.join(', ')}`);
+  
+  const requests = missingTabs.map(tabName => ({
+    addSheet: {
+      properties: { title: tabName }
+    }
+  }));
+  
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId,
+    requestBody: { requests },
+  });
+  
+  console.log('Tabs created successfully');
 }
 
 // Clear a tab completely
