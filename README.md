@@ -71,7 +71,7 @@ The bot needs these environment variables to run. You'll set them in **two diffe
 | `TWILIO_AUTH_TOKEN` | Yes | Your Twilio Auth Token |
 | `TWILIO_WHATSAPP_NUMBER` | Yes | Your Twilio WhatsApp number (e.g. `whatsapp:+14155238886`) |
 | `GOOGLE_SHEETS_ID` | No | Google Sheets spreadsheet ID |
-| `GOOGLE_SERVICE_ACCOUNT_KEY` | No | Path to Google service account JSON |
+| `GOOGLE_SERVICE_ACCOUNT_KEY` | No | Raw JSON content of your Google service account credentials |
 | `PORT` | No | Server port (defaults to 3000) |
 
 ### Where to Set Variables
@@ -151,11 +151,13 @@ The bot needs these environment variables to run. You'll set them in **two diffe
 4. Select **JSON**
 5. Click **"Create"** - JSON file downloads
 
-### Step 5: Setup Credentials File
+### Step 5: Get Credentials JSON
 
-1. Create folder: `credentials/` in project
-2. Rename downloaded file to: `google-sheets.json`
-3. Move to: `credentials/google-sheets.json`
+1. Open the downloaded JSON file in a text editor
+2. Select **all** the content (Cmd+A on Mac, Ctrl+A on Windows)
+3. Copy it — you'll paste this entire JSON content into Railway as an environment variable
+
+> **Important:** The JSON content includes newlines in the `private_key` field. Make sure you copy the entire file content exactly as-is, including all newlines and special characters.
 
 ### Step 6: Create Spreadsheet
 
@@ -175,7 +177,7 @@ The bot needs these environment variables to run. You'll set them in **two diffe
 ### Step 7: Share Spreadsheet
 
 1. In Google Sheets, click **"Share"**
-2. Enter the service account email (from JSON file)
+2. Enter the service account email (from the JSON file, field `client_email`)
    - Looks like: `tree-bot-sheets@your-project.iam.gserviceaccount.com`
 3. Give **"Editor"** access
 4. Click **"Send"**
@@ -198,11 +200,13 @@ TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
 
 # Google Sheets (Optional)
 GOOGLE_SHEETS_ID=your_spreadsheet_id_here
-GOOGLE_SERVICE_ACCOUNT_KEY=credentials/google-sheets.json
+GOOGLE_SERVICE_ACCOUNT_KEY={"type": "service_account", "project_id": "your-project", "private_key": "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----\n", "client_email": "your-service-account@your-project.iam.gserviceaccount.com", ...}
 
 # Server
 PORT=3000
 ```
+
+> **Tip:** For the `GOOGLE_SERVICE_ACCOUNT_KEY`, paste the entire JSON content on a single line. The newlines in the private key will be escaped as `\n` in the JSON string.
 
 ### Step 2: Replace Placeholder Values
 
@@ -280,8 +284,11 @@ git push -u origin main
 | `TWILIO_AUTH_TOKEN` | Your Twilio Auth Token | `auth_token_here` |
 | `TWILIO_WHATSAPP_NUMBER` | Your WhatsApp number with prefix | `whatsapp:+14155238886` |
 | `GOOGLE_SHEETS_ID` | Your spreadsheet ID (optional) | `1abc123...` |
+| `GOOGLE_SERVICE_ACCOUNT_KEY` | Entire JSON content from service account file (optional) | `{"type": "service_account", ...}` |
 
 4. Click **"Deploy"** or wait for auto-deploy
+
+> **Important:** For `GOOGLE_SERVICE_ACCOUNT_KEY`, paste the **entire JSON content** from your service account key file. This is a long string that includes all fields like `type`, `project_id`, `private_key`, `client_email`, etc. Make sure to copy the complete JSON content including the opening `{` and closing `}`.
 
 ### Step 4: Get Your Webhook URL
 
@@ -357,10 +364,11 @@ Now connect Twilio to your deployed bot:
 
 ### Google Sheets Not Syncing
 
-1. Verify service account JSON file is in `credentials/` folder
-2. Check spreadsheet is shared with service account email
+1. Verify `GOOGLE_SERVICE_ACCOUNT_KEY` contains the entire JSON content (not a file path)
+2. Check spreadsheet is shared with service account email (field `client_email` in the JSON)
 3. Ensure Sheet ID is correct in Railway Variables
 4. Check Railway logs for API errors
+5. Ensure all 5 tabs exist: `Inventory`, `Allocations`, `Drop History`, `Activity Log`, `Sections`
 
 ### Database Issues
 
@@ -401,8 +409,6 @@ whatsapp-tree-bot/
 │   ├── sync.js           # Sync logic
 │   └── commands/
 │       └── index.js      # All command handlers
-├── credentials/
-│   └── google-sheets.json
 ├── data/
 │   └── inventory.db      # Created automatically
 ├── .env                  # Local only - NOT uploaded to GitHub
