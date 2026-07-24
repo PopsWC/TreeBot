@@ -32,6 +32,7 @@ async function syncInventory() {
     rows.unshift(header);
     
     await sheets.replaceTabData(TABS.INVENTORY, rows);
+    console.log(`Synced Inventory: ${inventory.length} rows`);
     
     return { success: true, count: inventory.length };
   } catch (error) {
@@ -64,6 +65,7 @@ async function syncAllocations() {
     rows.unshift(header);
     
     await sheets.replaceTabData(TABS.ALLOCATIONS, rows);
+    console.log(`Synced Allocations: ${allocations.length} rows`);
     
     return { success: true, count: allocations.length };
   } catch (error) {
@@ -95,6 +97,7 @@ async function syncDrops() {
     rows.unshift(header);
     
     await sheets.replaceTabData(TABS.DROPS, rows);
+    console.log(`Synced Drop History: ${drops.length} rows`);
     
     return { success: true, count: drops.length };
   } catch (error) {
@@ -127,6 +130,7 @@ async function syncLogs() {
     rows.unshift(header);
     
     await sheets.replaceTabData(TABS.LOGS, rows);
+    console.log(`Synced Activity Log: ${logs.length} rows`);
     
     return { success: true, count: logs.length };
   } catch (error) {
@@ -155,6 +159,7 @@ async function syncSections() {
     rows.unshift(header);
     
     await sheets.replaceTabData(TABS.SECTIONS, rows);
+    console.log(`Synced Sections: ${sections.length} rows`);
     
     return { success: true, count: sections.length };
   } catch (error) {

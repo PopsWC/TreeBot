@@ -144,25 +144,47 @@ function parseQuantityKeyArgs(argsStr) {
 }
 
 function parseDropArgs(argsStr) {
-  // /drop 10 068 section 6
-  const match = argsStr.match(/^(\d+)\s+(\S+)\s+section\s+(\S+)/i);
-  if (!match) return null;
-  return {
-    quantity: parseInt(match[1]),
-    requestKey: match[2],
-    section: match[3]
-  };
+  // /drop 10 068 section 6  OR  /drop 10 068 6
+  const withSection = argsStr.match(/^(\d+)\s+(\S+)\s+section\s+(\S+)/i);
+  if (withSection) {
+    return {
+      quantity: parseInt(withSection[1]),
+      requestKey: withSection[2],
+      section: withSection[3]
+    };
+  }
+  // Without "section" keyword: /drop 10 068 6
+  const withoutSection = argsStr.match(/^(\d+)\s+(\S+)\s+(\S+)$/);
+  if (withoutSection) {
+    return {
+      quantity: parseInt(withoutSection[1]),
+      requestKey: withoutSection[2],
+      section: withoutSection[3]
+    };
+  }
+  return null;
 }
 
 function parseSetAllocArgs(argsStr) {
-  // /setalloc 200 gg-2024-068 section 6
-  const match = argsStr.match(/^(\d+)\s+(\S+)\s+section\s+(\S+)/i);
-  if (!match) return null;
-  return {
-    quantity: parseInt(match[1]),
-    requestKey: match[2],
-    section: match[3]
-  };
+  // /setalloc 200 gg-2024-068 section 6  OR  /setalloc 200 gg-2024-068 6
+  const withSection = argsStr.match(/^(\d+)\s+(\S+)\s+section\s+(\S+)/i);
+  if (withSection) {
+    return {
+      quantity: parseInt(withSection[1]),
+      requestKey: withSection[2],
+      section: withSection[3]
+    };
+  }
+  // Without "section" keyword
+  const withoutSection = argsStr.match(/^(\d+)\s+(\S+)\s+(\S+)$/);
+  if (withoutSection) {
+    return {
+      quantity: parseInt(withoutSection[1]),
+      requestKey: withoutSection[2],
+      section: withoutSection[3]
+    };
+  }
+  return null;
 }
 
 function parseStatusArgs(argsStr) {

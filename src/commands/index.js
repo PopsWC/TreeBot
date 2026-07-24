@@ -119,8 +119,8 @@ async function addstock(args, from, contactName) {
 
 // /drop
 async function drop(args, from, contactName) {
-  if (!args.quantity || !args.requestKey || !args.section) {
-    return '❌ Usage: /drop [quantity] [request_key] section [section]\nExample: /drop 10 068 section 6';
+  if (!args || !args.quantity || !args.requestKey || !args.section) {
+    return '❌ Usage: /drop [quantity] [request_key] [section]\nExample: /drop 10 068 6';
   }
   
   if (args.quantity <= 0) {
@@ -209,8 +209,8 @@ async function drop(args, from, contactName) {
 
 // /setalloc
 async function setalloc(args, from, contactName) {
-  if (!args.quantity || !args.requestKey || !args.section) {
-    return '❌ Usage: /setalloc [quantity] [request_key] section [section]\nExample: /setalloc 200 gg-2024-068 section 6';
+  if (!args || !args.quantity || !args.requestKey || !args.section) {
+    return '❌ Usage: /setalloc [quantity] [request_key] [section]\nExample: /setalloc 200 068 6';
   }
   
   if (args.quantity <= 0) {
