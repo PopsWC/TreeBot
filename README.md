@@ -54,10 +54,33 @@ A WhatsApp bot for tracking tree planting box drops and allocations. Designed fo
 
 ### Prerequisites
 
-- Node.js 18+ installed
+- Node.js 18+ installed (for local development)
 - GitHub account
 - Twilio account with WhatsApp-enabled number
 - Railway account (for hosting)
+
+---
+
+## Environment Variables
+
+The bot needs these environment variables to run. You'll set them in **two different places** depending on how you run the bot:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `TWILIO_ACCOUNT_SID` | Yes | Your Twilio Account SID (starts with `AC`) |
+| `TWILIO_AUTH_TOKEN` | Yes | Your Twilio Auth Token |
+| `TWILIO_WHATSAPP_NUMBER` | Yes | Your Twilio WhatsApp number (e.g. `whatsapp:+14155238886`) |
+| `GOOGLE_SHEETS_ID` | No | Google Sheets spreadsheet ID |
+| `GOOGLE_SERVICE_ACCOUNT_KEY` | No | Path to Google service account JSON |
+| `PORT` | No | Server port (defaults to 3000) |
+
+### Where to Set Variables
+
+**For local development:** Create a `.env` file in the project root (see Part 3 below)
+
+**For Railway deployment:** Add variables in the Railway dashboard (see Part 5 below)
+
+> **Important:** The `.env` file is listed in `.gitignore`, so it is **never uploaded to GitHub**. Your secrets stay on your computer. On Railway, you enter the same values through their web dashboard instead.
 
 ---
 
@@ -159,9 +182,13 @@ A WhatsApp bot for tracking tree planting box drops and allocations. Designed fo
 
 ---
 
-## Part 3: Environment Variables
+## Part 3: Environment Variables for Local Development
 
-### Create `.env` File
+If you want to run the bot on your computer (for testing/development), create a `.env` file in the project root.
+
+### Step 1: Create `.env` File
+
+Create a file called `.env` in the project root (same folder as `package.json`):
 
 ```env
 # Twilio WhatsApp (Required)
@@ -176,6 +203,23 @@ GOOGLE_SERVICE_ACCOUNT_KEY=credentials/google-sheets.json
 # Server
 PORT=3000
 ```
+
+### Step 2: Replace Placeholder Values
+
+Replace each `your_xxx_here` with your actual values from:
+- **TWILIO_ACCOUNT_SID**: From Twilio Console dashboard
+- **TWILIO_AUTH_TOKEN**: From Twilio Console dashboard
+- **TWILIO_WHATSAPP_NUMBER**: Your Twilio WhatsApp number with `whatsapp:` prefix
+- **GOOGLE_SHEETS_ID**: From your Google Sheets URL (optional)
+
+### Step 3: Run Locally
+
+```bash
+npm install
+npm run dev
+```
+
+> **Note:** The `.env` file is in `.gitignore` and will **never be uploaded to GitHub**. This keeps your secrets safe.
 
 ---
 
@@ -222,27 +266,30 @@ git push -u origin main
 3. Authorize Railway access
 4. Select your `whatsapp-tree-bot` repository
 
-### Step 3: Add Environment Variables
+### Step 3: Add Environment Variables in Railway
 
-1. In Railway dashboard, go to **"Variables"** tab
-2. Add each variable from your `.env`:
-   ```
-   TWILIO_ACCOUNT_SID = ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-   TWILIO_AUTH_TOKEN = your_auth_token
-   TWILIO_WHATSAPP_NUMBER = whatsapp:+14155238886
-   GOOGLE_SHEETS_ID = your_sheet_id (if using sheets)
-   ```
+> **This is how Railway gets your secrets** — instead of reading from a `.env` file (which wasn't uploaded to GitHub), you enter the values directly in Railway's dashboard.
 
-### Step 4: Deploy
+1. In Railway dashboard, click on your project
+2. Go to the **"Variables"** tab
+3. Click **"New Variable"** and add each one:
 
-1. Railway auto-deploys on push
-2. Wait for deployment to complete
-3. Click **"Settings"** → **"Networking"**
-4. Click **"Generate Domain"** to get your URL
+| Variable | Value | Example |
+|----------|-------|---------|
+| `TWILIO_ACCOUNT_SID` | Your Twilio Account SID | `AC1234567890abcdef...` |
+| `TWILIO_AUTH_TOKEN` | Your Twilio Auth Token | `auth_token_here` |
+| `TWILIO_WHATSAPP_NUMBER` | Your WhatsApp number with prefix | `whatsapp:+14155238886` |
+| `GOOGLE_SHEETS_ID` | Your spreadsheet ID (optional) | `1abc123...` |
 
-### Step 5: Note Your Webhook URL
+4. Click **"Deploy"** or wait for auto-deploy
 
-Your webhook URL will be:
+### Step 4: Get Your Webhook URL
+
+1. In Railway, go to **"Settings"** → **"Networking"**
+2. Click **"Generate Domain"**
+3. Copy the URL — it looks like: `https://your-app-name.up.railway.app`
+
+Your full webhook URL will be:
 ```
 https://your-app-name.up.railway.app/whatsapp
 ```
@@ -251,13 +298,16 @@ https://your-app-name.up.railway.app/whatsapp
 
 ## Part 6: Configure Twilio Webhook
 
-### Step 1: Set Webhook URL
+Now connect Twilio to your deployed bot:
 
-1. Go to Twilio Console
+1. Go to [Twilio Console](https://console.twilio.com)
 2. Navigate to **Messaging** → **WhatsApp Senders**
 3. Click on your WhatsApp number
 4. Under **"Webhook Configuration"**:
-   - **When a message comes in**: `https://your-app.up.railway.app/whatsapp`
+   - **When a message comes in**: Enter your Railway webhook URL
+     ```
+     https://your-app-name.up.railway.app/whatsapp
+     ```
    - Method: **HTTP POST**
 5. Click **Save**
 
@@ -267,9 +317,9 @@ https://your-app-name.up.railway.app/whatsapp
 
 ### Step 1: Send Test Message
 
-1. Send WhatsApp message to your Twilio WhatsApp number
+1. Send a WhatsApp message to your Twilio WhatsApp number
 2. Message: `/help`
-3. Bot should respond with command list
+3. Bot should respond with the command list
 
 ### Step 2: Test Basic Workflow
 
@@ -286,7 +336,7 @@ https://your-app-name.up.railway.app/whatsapp
 ### Step 3: Verify Google Sheets (if configured)
 
 1. Open your spreadsheet
-2. Data should appear in respective tabs
+2. Data should appear in respective tabs after each action
 
 ---
 
@@ -294,33 +344,34 @@ https://your-app-name.up.railway.app/whatsapp
 
 ### Bot Not Responding
 
-1. Check Railway logs for errors
+1. Check Railway logs for errors (Railway Dashboard → Deployments → View Logs)
 2. Verify webhook URL is correct (ends with `/whatsapp`)
-3. Ensure Twilio credentials are correct
-4. Check that your WhatsApp number is verified in Twilio
+3. Ensure Twilio credentials are correct in Railway Variables
+4. Check that your WhatsApp number is active in Twilio
 
 ### Twilio Errors
 
-- **"Authentication Error"**: Check Account SID and Auth Token
-- **"Invalid number"**: Ensure number is in `whatsapp:+14155238886` format
+- **"Authentication Error"**: Check Account SID and Auth Token in Railway Variables
+- **"Invalid number"**: Ensure number format is `whatsapp:+14155238886` (with country code)
 - **"Unverified number"**: For sandbox, users must join first
 
 ### Google Sheets Not Syncing
 
-1. Verify service account JSON is in place
-2. Check spreadsheet is shared with service account
-3. Ensure Sheet ID is correct in `.env`
+1. Verify service account JSON file is in `credentials/` folder
+2. Check spreadsheet is shared with service account email
+3. Ensure Sheet ID is correct in Railway Variables
 4. Check Railway logs for API errors
 
 ### Database Issues
 
 SQLite database is stored in `data/inventory.db`
-- Back up this file regularly
-- It's created automatically on first run
+- Created automatically on first run
+- Back up this file regularly if running locally
+- On Railway, database resets on each deploy (data is ephemeral)
 
 ---
 
-## Development
+## Development (Local)
 
 ```bash
 # Install dependencies
@@ -333,6 +384,8 @@ npm run dev
 npm start
 ```
 
+> **Note:** For local development, you need a `.env` file (see Part 3). For production on Railway, variables are set in the dashboard (see Part 5).
+
 ---
 
 ## Project Structure
@@ -340,7 +393,7 @@ npm start
 ```
 whatsapp-tree-bot/
 ├── src/
-│   ├── index.js          # Express server, webhook
+│   ├── index.js          # Express server, webhook handler
 │   ├── whatsapp.js       # Twilio WhatsApp client
 │   ├── parser.js         # Command parsing
 │   ├── database.js       # SQLite operations
@@ -351,8 +404,8 @@ whatsapp-tree-bot/
 ├── credentials/
 │   └── google-sheets.json
 ├── data/
-│   └── inventory.db
-├── .env
+│   └── inventory.db      # Created automatically
+├── .env                  # Local only - NOT uploaded to GitHub
 ├── .gitignore
 ├── package.json
 └── README.md
