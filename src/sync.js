@@ -7,7 +7,19 @@ const TABS = {
   ALLOCATIONS: 'Allocations',
   DROPS: 'Drop History',
   LOGS: 'Activity Log',
-  SECTIONS: 'Sections'
+  SECTIONS: 'Sections',
+  REQUEST_KEYS: 'Request Keys'
+};
+
+// Importable tabs (excluding Drop History and Activity Log)
+const IMPORT_TABS = ['Inventory', 'Allocations', 'Request Keys', 'Sections'];
+
+// Expected columns for each importable tab
+const IMPORT_COLUMNS = {
+  'Inventory': ['Request Key', 'Short Key', 'Species', 'Quantity', 'Last Updated'],
+  'Allocations': ['Section', 'Request Key', 'Short Key', 'Species', 'Target', 'Dropped', 'Remaining'],
+  'Request Keys': ['Request Key', 'Short Key', 'Species', 'Notes', 'Created'],
+  'Sections': ['Section ID', 'Description', 'Created']
 };
 
 // Track last sync times
@@ -16,8 +28,12 @@ const lastSyncTimes = {
   [TABS.ALLOCATIONS]: null,
   [TABS.DROPS]: null,
   [TABS.LOGS]: null,
-  [TABS.SECTIONS]: null
+  [TABS.SECTIONS]: null,
+  [TABS.REQUEST_KEYS]: null
 };
+
+// Pending import storage
+let pendingImport = null;
 
 // Sync inventory tab
 async function syncInventory() {
@@ -207,6 +223,43 @@ async function syncSections() {
   }
 }
 
+// Sync request keys tab
+async function syncRequestKeys() {
+  if (!sheets.isAvailable()) {
+    return { success: false, message: 'Google Sheets not connected' };
+  }
+  
+  try {
+    const requestKeys = db.getAllRequestKeysForSync();
+    
+    const rows = requestKeys.map(item => [
+      item.request_key,
+      item.short_key || '',
+      item.species_name,
+      item.notes || '',
+      item.created_at
+    ]);
+    
+    // Add header
+    const header = ['Request Key', 'Short Key', 'Species', 'Notes', 'Created'];
+    rows.unshift(header);
+    
+    const result = await sheets.replaceTabData(TABS.REQUEST_KEYS, rows);
+    
+    if (result.success) {
+      lastSyncTimes[TABS.REQUEST_KEYS] = new Date().toISOString();
+      console.log(`Synced Request Keys: ${requestKeys.length} rows`);
+      return { success: true, count: requestKeys.length };
+    } else {
+      console.error(`Failed to sync Request Keys: ${result.error}`);
+      return { success: false, message: result.error };
+    }
+  } catch (error) {
+    console.error('Error syncing request keys:', error);
+    return { success: false, message: error.message };
+  }
+}
+
 // Sync all tabs
 async function syncAll() {
   if (!sheets.isAvailable()) {
@@ -233,6 +286,9 @@ async function syncAll() {
   
   const sectionsResult = await syncSections();
   results.push({ tab: 'Sections', ...sectionsResult });
+  
+  const requestKeysResult = await syncRequestKeys();
+  results.push({ tab: 'Request Keys', ...requestKeysResult });
   
   const allSuccess = results.every(r => r.success);
   
@@ -271,7 +327,11 @@ async function syncTab(target) {
     return await syncSections();
   }
   
-  return { success: false, message: `Unknown target: ${target}. Use: inventory, allocations, drops, logs, sections` };
+  if (lowerTarget.includes('request') || lowerTarget.includes('key')) {
+    return await syncRequestKeys();
+  }
+  
+  return { success: false, message: `Unknown target: ${target}. Use: inventory, allocations, drops, logs, sections, request keys` };
 }
 
 // Auto-sync specific tabs after actions (called from command handlers)
@@ -342,13 +402,30 @@ async function autoSync(actionType) {
       
       case 'addkey': {
         const inv = await syncInventory();
+        const requestKeys = await syncRequestKeys();
         const logs = await syncLogs();
         
         if (inv.success) synced.push('Inventory');
         else errors.push(`Inventory: ${inv.message}`);
         
+        if (requestKeys.success) synced.push('Request Keys');
+        else errors.push(`Request Keys: ${requestKeys.message}`);
+        
         if (logs.success) synced.push('Logs');
         else errors.push(`Logs: ${logs.message}`);
+        break;
+      }
+      
+      case 'import': {
+        const allResult = await syncAll();
+        if (allResult.success) {
+          synced.push('All tabs');
+        } else {
+          for (const r of allResult.results) {
+            if (r.success) synced.push(r.tab);
+            else errors.push(`${r.tab}: ${r.message}`);
+          }
+        }
         break;
       }
       
@@ -401,10 +478,437 @@ function formatSyncStatus(syncResult) {
   if (syncResult.success) {
     return `📊 Sync: ✅ ${syncResult.synced.join(', ')}`;
   } else {
-    const synced = syncResult.synced.length > 0 ? `✅ ${syncResult.synced.join(', ')}` : '';
+    const syncedStr = syncResult.synced.length > 0 ? `✅ ${syncResult.synced.join(', ')}` : '';
     const failed = syncResult.errors.length > 0 ? `❌ ${syncResult.errors.join(', ')}` : '';
-    return `📊 Sync: ${[synced, failed].filter(Boolean).join(' | ')}`;
+    return `📊 Sync: ${[syncedStr, failed].filter(Boolean).join(' | ')}`;
   }
+}
+
+// ==================== IMPORT FUNCTIONS ====================
+
+// Parse inventory rows from Sheets
+function parseInventoryRows(rows) {
+  const parsed = [];
+  const errors = [];
+  
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const requestKey = row['Request Key']?.trim();
+    const quantity = row['Quantity']?.trim();
+    
+    if (!requestKey) {
+      errors.push(`Row ${i + 2}: Missing Request Key`);
+      continue;
+    }
+    
+    if (!quantity || isNaN(parseInt(quantity))) {
+      errors.push(`Row ${i + 2}: Invalid quantity for "${requestKey}"`);
+      continue;
+    }
+    
+    parsed.push({
+      requestKey,
+      quantity: parseInt(quantity)
+    });
+  }
+  
+  return { parsed, errors };
+}
+
+// Parse allocations rows from Sheets
+function parseAllocationsRows(rows) {
+  const parsed = [];
+  const errors = [];
+  
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const section = row['Section']?.trim();
+    const requestKey = row['Request Key']?.trim();
+    const target = row['Target']?.trim();
+    
+    if (!section) {
+      errors.push(`Row ${i + 2}: Missing Section`);
+      continue;
+    }
+    
+    if (!requestKey) {
+      errors.push(`Row ${i + 2}: Missing Request Key`);
+      continue;
+    }
+    
+    if (!target || isNaN(parseInt(target))) {
+      errors.push(`Row ${i + 2}: Invalid target for "${requestKey}" in section "${section}"`);
+      continue;
+    }
+    
+    parsed.push({
+      section,
+      requestKey,
+      targetQuantity: parseInt(target)
+    });
+  }
+  
+  return { parsed, errors };
+}
+
+// Parse request keys rows from Sheets
+function parseRequestKeysRows(rows) {
+  const parsed = [];
+  const errors = [];
+  
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const requestKey = row['Request Key']?.trim();
+    const shortKey = row['Short Key']?.trim();
+    const species = row['Species']?.trim();
+    const notes = row['Notes']?.trim();
+    
+    if (!requestKey) {
+      errors.push(`Row ${i + 2}: Missing Request Key`);
+      continue;
+    }
+    
+    if (!species) {
+      errors.push(`Row ${i + 2}: Missing Species for "${requestKey}"`);
+      continue;
+    }
+    
+    parsed.push({
+      requestKey,
+      shortKey: shortKey || null,
+      species,
+      notes: notes || null
+    });
+  }
+  
+  return { parsed, errors };
+}
+
+// Parse sections rows from Sheets
+function parseSectionsRows(rows) {
+  const parsed = [];
+  const errors = [];
+  
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const sectionId = row['Section ID']?.trim();
+    const description = row['Description']?.trim();
+    
+    if (!sectionId) {
+      errors.push(`Row ${i + 2}: Missing Section ID`);
+      continue;
+    }
+    
+    parsed.push({
+      sectionId,
+      description: description || null
+    });
+  }
+  
+  return { parsed, errors };
+}
+
+// Check what would change for inventory
+function checkInventoryChanges(data) {
+  const newItems = [];
+  const updatedItems = [];
+  const unchangedItems = [];
+  
+  for (const item of data) {
+    const existing = db.getRequestKey(item.requestKey);
+    if (!existing) {
+      // Key doesn't exist in DB, will be skipped during import
+      continue;
+    }
+    
+    const inventory = db.getInventory(existing.id);
+    const currentQty = inventory?.quantity || 0;
+    
+    if (!inventory) {
+      newItems.push(item);
+    } else if (currentQty !== item.quantity) {
+      updatedItems.push({ ...item, currentQty });
+    } else {
+      unchangedItems.push(item);
+    }
+  }
+  
+  return { new: newItems, updated: updatedItems, unchanged: unchangedItems };
+}
+
+// Check what would change for allocations
+function checkAllocationChanges(data) {
+  const newItems = [];
+  const updatedItems = [];
+  const unchangedItems = [];
+  
+  for (const item of data) {
+    const existing = db.getAllocation(item.section, db.getRequestKey(item.requestKey)?.id);
+    
+    if (!existing) {
+      newItems.push(item);
+    } else if (existing.target_quantity !== item.targetQuantity) {
+      updatedItems.push({ ...item, currentTarget: existing.target_quantity });
+    } else {
+      unchangedItems.push(item);
+    }
+  }
+  
+  return { new: newItems, updated: updatedItems, unchanged: unchangedItems };
+}
+
+// Check what would change for request keys
+function checkRequestKeyChanges(data) {
+  const newItems = [];
+  const updatedItems = [];
+  const unchangedItems = [];
+  
+  for (const item of data) {
+    const existing = db.getRequestKey(item.requestKey);
+    
+    if (!existing) {
+      newItems.push(item);
+    } else {
+      // Check if any fields changed
+      const speciesChanged = existing.species_name !== item.species;
+      const shortKeyChanged = existing.short_key !== item.shortKey;
+      const notesChanged = existing.notes !== item.notes;
+      
+      if (speciesChanged || shortKeyChanged || notesChanged) {
+        updatedItems.push(item);
+      } else {
+        unchangedItems.push(item);
+      }
+    }
+  }
+  
+  return { new: newItems, updated: updatedItems, unchanged: unchangedItems };
+}
+
+// Check what would change for sections
+function checkSectionChanges(data) {
+  const newItems = [];
+  const updatedItems = [];
+  const unchangedItems = [];
+  
+  for (const item of data) {
+    const existing = db.getSection(item.sectionId);
+    
+    if (!existing) {
+      newItems.push(item);
+    } else if (item.description && existing.description !== item.description) {
+      updatedItems.push(item);
+    } else {
+      unchangedItems.push(item);
+    }
+  }
+  
+  return { new: newItems, updated: updatedItems, unchanged: unchangedItems };
+}
+
+// Generate import preview
+async function generateImportPreview(tabs = IMPORT_TABS) {
+  const preview = {
+    inventory: null,
+    allocations: null,
+    requestKeys: null,
+    sections: null
+  };
+  
+  // Read and parse each tab
+  if (tabs.includes('Inventory')) {
+    const result = await sheets.readTabData('Inventory');
+    if (result.success && result.data.length > 0) {
+      const { parsed, errors } = parseInventoryRows(result.data);
+      const changes = checkInventoryChanges(parsed);
+      preview.inventory = {
+        found: result.data.length,
+        valid: parsed.length,
+        errors: errors,
+        ...changes
+      };
+    } else {
+      preview.inventory = {
+        found: 0,
+        valid: 0,
+        errors: result.error ? [result.error] : [],
+        new: [],
+        updated: [],
+        unchanged: []
+      };
+    }
+  }
+  
+  if (tabs.includes('Allocations')) {
+    const result = await sheets.readTabData('Allocations');
+    if (result.success && result.data.length > 0) {
+      const { parsed, errors } = parseAllocationsRows(result.data);
+      const changes = checkAllocationChanges(parsed);
+      preview.allocations = {
+        found: result.data.length,
+        valid: parsed.length,
+        errors: errors,
+        ...changes
+      };
+    } else {
+      preview.allocations = {
+        found: 0,
+        valid: 0,
+        errors: result.error ? [result.error] : [],
+        new: [],
+        updated: [],
+        unchanged: []
+      };
+    }
+  }
+  
+  if (tabs.includes('Request Keys')) {
+    const result = await sheets.readTabData('Request Keys');
+    if (result.success && result.data.length > 0) {
+      const { parsed, errors } = parseRequestKeysRows(result.data);
+      const changes = checkRequestKeyChanges(parsed);
+      preview.requestKeys = {
+        found: result.data.length,
+        valid: parsed.length,
+        errors: errors,
+        ...changes
+      };
+    } else {
+      preview.requestKeys = {
+        found: 0,
+        valid: 0,
+        errors: result.error ? [result.error] : [],
+        new: [],
+        updated: [],
+        unchanged: []
+      };
+    }
+  }
+  
+  if (tabs.includes('Sections')) {
+    const result = await sheets.readTabData('Sections');
+    if (result.success && result.data.length > 0) {
+      const { parsed, errors } = parseSectionsRows(result.data);
+      const changes = checkSectionChanges(parsed);
+      preview.sections = {
+        found: result.data.length,
+        valid: parsed.length,
+        errors: errors,
+        ...changes
+      };
+    } else {
+      preview.sections = {
+        found: 0,
+        valid: 0,
+        errors: result.error ? [result.error] : [],
+        new: [],
+        updated: [],
+        unchanged: []
+      };
+    }
+  }
+  
+  return preview;
+}
+
+// Apply import to database (transactional)
+async function applyImport(preview) {
+  const results = {
+    inventory: { inserted: 0, updated: 0, skipped: 0, errors: [] },
+    allocations: { inserted: 0, updated: 0, skipped: 0, errors: [] },
+    requestKeys: { inserted: 0, updated: 0, skipped: 0, errors: [] },
+    sections: { inserted: 0, updated: 0, skipped: 0, errors: [] }
+  };
+  
+  // Import request keys first (dependencies)
+  if (preview.requestKeys) {
+    // Re-parse to get fresh data
+    const result = await sheets.readTabData('Request Keys');
+    if (result.success) {
+      const { parsed } = parseRequestKeysRows(result.data);
+      for (const item of parsed) {
+        const upsertResult = db.upsertRequestKey(item.requestKey, item.shortKey, item.species, item.notes);
+        if (upsertResult.success) {
+          if (upsertResult.action === 'inserted') results.requestKeys.inserted++;
+          else results.requestKeys.updated++;
+        } else {
+          results.requestKeys.skipped++;
+          results.requestKeys.errors.push(upsertResult.error);
+        }
+      }
+    }
+  }
+  
+  // Import sections
+  if (preview.sections) {
+    const result = await sheets.readTabData('Sections');
+    if (result.success) {
+      const { parsed } = parseSectionsRows(result.data);
+      for (const item of parsed) {
+        const upsertResult = db.upsertSection(item.sectionId, item.description);
+        if (upsertResult.success) {
+          if (upsertResult.action === 'inserted') results.sections.inserted++;
+          else results.sections.updated++;
+        } else {
+          results.sections.skipped++;
+          results.sections.errors.push(upsertResult.error);
+        }
+      }
+    }
+  }
+  
+  // Import inventory
+  if (preview.inventory) {
+    const result = await sheets.readTabData('Inventory');
+    if (result.success) {
+      const { parsed } = parseInventoryRows(result.data);
+      for (const item of parsed) {
+        const upsertResult = db.upsertInventory(item.requestKey, item.quantity);
+        if (upsertResult.success) {
+          if (upsertResult.action === 'inserted') results.inventory.inserted++;
+          else results.inventory.updated++;
+        } else {
+          results.inventory.skipped++;
+          results.inventory.errors.push(upsertResult.error);
+        }
+      }
+    }
+  }
+  
+  // Import allocations
+  if (preview.allocations) {
+    const result = await sheets.readTabData('Allocations');
+    if (result.success) {
+      const { parsed } = parseAllocationsRows(result.data);
+      for (const item of parsed) {
+        const upsertResult = db.upsertAllocation(item.section, item.requestKey, item.targetQuantity);
+        if (upsertResult.success) {
+          if (upsertResult.action === 'inserted') results.allocations.inserted++;
+          else results.allocations.updated++;
+        } else {
+          results.allocations.skipped++;
+          results.allocations.errors.push(upsertResult.error);
+        }
+      }
+    }
+  }
+  
+  return results;
+}
+
+// Store pending import
+function setPendingImport(preview) {
+  pendingImport = preview;
+}
+
+// Get pending import
+function getPendingImport() {
+  return pendingImport;
+}
+
+// Clear pending import
+function clearPendingImport() {
+  pendingImport = null;
 }
 
 module.exports = {
@@ -413,10 +917,17 @@ module.exports = {
   syncDrops,
   syncLogs,
   syncSections,
+  syncRequestKeys,
   syncAll,
   syncTab,
   autoSync,
   getSyncStatus,
   formatSyncStatus,
-  TABS
+  TABS,
+  IMPORT_TABS,
+  generateImportPreview,
+  applyImport,
+  setPendingImport,
+  getPendingImport,
+  clearPendingImport
 };

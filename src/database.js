@@ -385,6 +385,109 @@ const dbHelpers = {
     return db.prepare(
       'SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT 500'
     ).all();
+  },
+
+  // Get all request keys for sync (including zero inventory)
+  getAllRequestKeysForSync() {
+    return db.prepare(`
+      SELECT rk.*, s.name as species_name
+      FROM request_keys rk
+      JOIN species s ON rk.species_id = s.id
+      ORDER BY s.name, rk.request_key
+    `).all();
+  },
+
+  // Upsert functions for import
+  upsertInventory(requestKey, quantity) {
+    const key = db.prepare('SELECT id FROM request_keys WHERE request_key = ?').get(requestKey);
+    if (!key) {
+      return { success: false, action: 'skipped', error: `Request key "${requestKey}" not found` };
+    }
+    
+    const existing = db.prepare('SELECT * FROM main_inventory WHERE request_key_id = ?').get(key.id);
+    
+    if (existing) {
+      db.prepare('UPDATE main_inventory SET quantity = ?, updated_at = datetime("now") WHERE request_key_id = ?')
+        .run(quantity, key.id);
+      return { success: true, action: 'updated', requestKey };
+    } else {
+      db.prepare('INSERT INTO main_inventory (request_key_id, quantity) VALUES (?, ?)')
+        .run(key.id, quantity);
+      return { success: true, action: 'inserted', requestKey };
+    }
+  },
+
+  upsertAllocation(section, requestKey, targetQuantity) {
+    const sectionExists = db.prepare('SELECT id FROM sections WHERE id = ?').get(section);
+    if (!sectionExists) {
+      return { success: false, action: 'skipped', error: `Section "${section}" not found` };
+    }
+    
+    const key = db.prepare('SELECT id FROM request_keys WHERE request_key = ?').get(requestKey);
+    if (!key) {
+      return { success: false, action: 'skipped', error: `Request key "${requestKey}" not found` };
+    }
+    
+    const existing = db.prepare(
+      'SELECT * FROM section_allocations WHERE section = ? AND request_key_id = ?'
+    ).get(section, key.id);
+    
+    if (existing) {
+      db.prepare(
+        'UPDATE section_allocations SET target_quantity = ? WHERE section = ? AND request_key_id = ?'
+      ).run(targetQuantity, section, key.id);
+      return { success: true, action: 'updated', section, requestKey };
+    } else {
+      db.prepare(
+        'INSERT INTO section_allocations (section, request_key_id, target_quantity) VALUES (?, ?, ?)'
+      ).run(section, key.id, targetQuantity);
+      return { success: true, action: 'inserted', section, requestKey };
+    }
+  },
+
+  upsertRequestKey(requestKey, shortKey, speciesName, notes) {
+    // Get or create species
+    let species = db.prepare('SELECT id FROM species WHERE name = ?').get(speciesName);
+    if (!species) {
+      const result = db.prepare('INSERT INTO species (name) VALUES (?)').run(speciesName);
+      species = { id: result.lastInsertRowid };
+    }
+    
+    const existing = db.prepare('SELECT id FROM request_keys WHERE request_key = ?').get(requestKey);
+    
+    if (existing) {
+      db.prepare(
+        'UPDATE request_keys SET species_id = ?, short_key = ?, notes = ? WHERE request_key = ?'
+      ).run(species.id, shortKey || null, notes || null, requestKey);
+      return { success: true, action: 'updated', requestKey };
+    } else {
+      db.prepare(
+        'INSERT INTO request_keys (request_key, species_id, short_key, notes) VALUES (?, ?, ?, ?)'
+      ).run(requestKey, species.id, shortKey || null, notes || null);
+      return { success: true, action: 'inserted', requestKey };
+    }
+  },
+
+  upsertSection(sectionId, description) {
+    const existing = db.prepare('SELECT id FROM sections WHERE id = ?').get(sectionId);
+    
+    if (existing) {
+      if (description) {
+        db.prepare('UPDATE sections SET description = ? WHERE id = ?').run(description, sectionId);
+      }
+      return { success: true, action: 'updated', sectionId };
+    } else {
+      db.prepare('INSERT INTO sections (id, description) VALUES (?, ?)').run(sectionId, description || null);
+      return { success: true, action: 'inserted', sectionId };
+    }
+  },
+
+  requestKeyExists(requestKey) {
+    return !!db.prepare('SELECT id FROM request_keys WHERE request_key = ?').get(requestKey);
+  },
+
+  sectionExists(sectionId) {
+    return !!db.prepare('SELECT id FROM sections WHERE id = ?').get(sectionId);
   }
 };
 

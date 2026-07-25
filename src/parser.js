@@ -104,6 +104,11 @@ function parseCommand(message) {
       args = {};
       break;
       
+    case 'import':
+      // /import  OR  /import inventory  OR  /import confirm
+      args = { _: argsStr ? argsStr.split(/\s+/) : [] };
+      break;
+      
     default:
       return null;
   }

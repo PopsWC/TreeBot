@@ -9,7 +9,7 @@ let connectionStatus = {
   spreadsheetTitle: null
 };
 
-const REQUIRED_TABS = ['Inventory', 'Allocations', 'Drop History', 'Activity Log', 'Sections'];
+const REQUIRED_TABS = ['Inventory', 'Allocations', 'Drop History', 'Activity Log', 'Sections', 'Request Keys'];
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
 
@@ -277,6 +277,56 @@ async function getTabRowCount(tabName) {
   }
 }
 
+// Read all data from a tab (for import)
+async function readTabData(tabName) {
+  if (!sheets) {
+    return { success: false, data: [], rowCount: 0, error: 'Sheets not initialized' };
+  }
+  
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: `${tabName}!A:Z`,
+      });
+      
+      const values = response.data.values || [];
+      
+      if (values.length === 0) {
+        return { success: true, data: [], rowCount: 0, error: null };
+      }
+      
+      // First row is headers
+      const headers = values[0];
+      const data = [];
+      
+      // Convert rows to objects using headers as keys
+      for (let i = 1; i < values.length; i++) {
+        const row = values[i];
+        const obj = {};
+        for (let j = 0; j < headers.length; j++) {
+          obj[headers[j]] = row[j] || '';
+        }
+        // Only add row if it has at least one non-empty value
+        const hasData = Object.values(obj).some(v => v !== '');
+        if (hasData) {
+          data.push(obj);
+        }
+      }
+      
+      return { success: true, data, rowCount: data.length, error: null };
+    } catch (error) {
+      console.log(`Read tab ${tabName} attempt ${attempt}/${MAX_RETRIES} failed: ${error.message}`);
+      
+      if (attempt < MAX_RETRIES) {
+        await sleep(RETRY_DELAY_MS * attempt);
+      }
+    }
+  }
+  
+  return { success: false, data: [], rowCount: 0, error: `Failed to read tab ${tabName} after ${MAX_RETRIES} attempts` };
+}
+
 // Get detailed connection status
 function getConnectionStatus() {
   return {
@@ -298,6 +348,7 @@ module.exports = {
   appendRows,
   replaceTabData,
   getTabRowCount,
+  readTabData,
   getConnectionStatus,
   isAvailable
 };

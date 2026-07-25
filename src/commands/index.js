@@ -1,6 +1,10 @@
 const db = require('../database');
 const { resolveRequestKey } = require('../parser');
-const { autoSync, formatSyncStatus, getSyncStatus, syncAll, syncTab } = require('../sync');
+const { 
+  autoSync, formatSyncStatus, getSyncStatus, syncAll, syncTab,
+  generateImportPreview, applyImport, setPendingImport, getPendingImport, clearPendingImport,
+  IMPORT_TABS
+} = require('../sync');
 const sheets = require('../sheets');
 
 // /help
@@ -28,9 +32,12 @@ async function help(args, from, contactName) {
 /keys [species] - List request keys
 /species - List all species
 
-*Utilities:*
-/sync - Sync to Google Sheets
+*Google Sheets:*
+/sync [tab] - Sync to Google Sheets
 /sheets - Check Google Sheets status
+/import [tab] - Import data from Google Sheets
+
+*Utilities:*
 /math [box size] [decimal] - Calculate saplings
 /undo - Undo your last action
 /logs [user] - View activity log
@@ -780,6 +787,171 @@ async function sheetsDebug(args, from, contactName) {
   return response;
 }
 
+// /import
+async function importData(args, from, contactName) {
+  if (!sheets.isAvailable()) {
+    return '❌ Google Sheets not connected. Run /sheets to check status.';
+  }
+  
+  const subcommand = args._?.[0]?.toLowerCase();
+  
+  // Handle confirm/cancel
+  if (subcommand === 'confirm') {
+    const pending = getPendingImport();
+    if (!pending) {
+      return '❌ No pending import. Run /import first to preview changes.';
+    }
+    
+    const result = await applyImport(pending);
+    clearPendingImport();
+    
+    // Sync back to sheets to ensure consistency
+    const syncResult = await autoSync('import');
+    
+    let response = '✅ *Import Complete*\n━━━━━━━━━━━━━━━━━━\n📥 Imported from Google Sheets:\n';
+    
+    if (result.requestKeys.inserted > 0 || result.requestKeys.updated > 0) {
+      response += `• Request Keys: ${result.requestKeys.inserted + result.requestKeys.updated} rows (${result.requestKeys.inserted} new, ${result.requestKeys.updated} updated)\n`;
+    }
+    if (result.sections.inserted > 0 || result.sections.updated > 0) {
+      response += `• Sections: ${result.sections.inserted + result.sections.updated} rows (${result.sections.inserted} new, ${result.sections.updated} updated)\n`;
+    }
+    if (result.inventory.inserted > 0 || result.inventory.updated > 0) {
+      response += `• Inventory: ${result.inventory.inserted + result.inventory.updated} rows (${result.inventory.inserted} new, ${result.inventory.updated} updated)\n`;
+    }
+    if (result.allocations.inserted > 0 || result.allocations.updated > 0) {
+      response += `• Allocations: ${result.allocations.inserted + result.allocations.updated} rows (${result.allocations.inserted} new, ${result.allocations.updated} updated)\n`;
+    }
+    
+    // Show skipped/errors
+    const allErrors = [
+      ...result.requestKeys.errors,
+      ...result.sections.errors,
+      ...result.inventory.errors,
+      ...result.allocations.errors
+    ];
+    if (allErrors.length > 0) {
+      response += `\n⚠️ Skipped rows:\n`;
+      allErrors.slice(0, 5).forEach(err => response += `• ${err}\n`);
+      if (allErrors.length > 5) {
+        response += `• ...and ${allErrors.length - 5} more\n`;
+      }
+    }
+    
+    response += `\n${formatSyncStatus(syncResult)}`;
+    return response;
+  }
+  
+  if (subcommand === 'cancel') {
+    clearPendingImport();
+    return '❌ Import cancelled.';
+  }
+  
+  // Determine which tabs to preview
+  let tabsToImport = IMPORT_TABS;
+  if (subcommand && subcommand !== 'all') {
+    const tabMap = {
+      'inventory': ['Inventory'],
+      'inv': ['Inventory'],
+      'allocations': ['Allocations'],
+      'alloc': ['Allocations'],
+      'keys': ['Request Keys'],
+      'requestkeys': ['Request Keys'],
+      'request': ['Request Keys'],
+      'sections': ['Sections'],
+      'section': ['Sections']
+    };
+    
+    tabsToImport = tabMap[subcommand];
+    if (!tabsToImport) {
+      return `❌ Unknown tab: ${subcommand}\nValid options: inventory, allocations, keys, sections, all`;
+    }
+  }
+  
+  // Generate preview
+  const preview = await generateImportPreview(tabsToImport);
+  
+  // Store for later confirmation
+  setPendingImport(preview);
+  
+  // Format preview message
+  let response = '📊 *Import Preview*\n━━━━━━━━━━━━━━━━━━\n📥 Found in Google Sheets:\n\n';
+  
+  let hasData = false;
+  
+  if (preview.inventory) {
+    const inv = preview.inventory;
+    if (inv.found > 0) {
+      hasData = true;
+      response += `*Inventory:* ${inv.found} rows\n`;
+      response += `  → ${inv.new.length} new, ${inv.updated.length} updated, ${inv.unchanged.length} unchanged\n`;
+      if (inv.errors.length > 0) {
+        response += `  ⚠️ ${inv.errors.length} rows skipped (invalid data)\n`;
+      }
+    } else {
+      response += `*Inventory:* No data found\n`;
+    }
+    response += '\n';
+  }
+  
+  if (preview.allocations) {
+    const alloc = preview.allocations;
+    if (alloc.found > 0) {
+      hasData = true;
+      response += `*Allocations:* ${alloc.found} rows\n`;
+      response += `  → ${alloc.new.length} new, ${alloc.updated.length} updated, ${alloc.unchanged.length} unchanged\n`;
+      if (alloc.errors.length > 0) {
+        response += `  ⚠️ ${alloc.errors.length} rows skipped (invalid data)\n`;
+      }
+    } else {
+      response += `*Allocations:* No data found\n`;
+    }
+    response += '\n';
+  }
+  
+  if (preview.requestKeys) {
+    const keys = preview.requestKeys;
+    if (keys.found > 0) {
+      hasData = true;
+      response += `*Request Keys:* ${keys.found} rows\n`;
+      response += `  → ${keys.new.length} new, ${keys.updated.length} updated, ${keys.unchanged.length} unchanged\n`;
+      if (keys.errors.length > 0) {
+        response += `  ⚠️ ${keys.errors.length} rows skipped (invalid data)\n`;
+      }
+    } else {
+      response += `*Request Keys:* No data found\n`;
+    }
+    response += '\n';
+  }
+  
+  if (preview.sections) {
+    const sects = preview.sections;
+    if (sects.found > 0) {
+      hasData = true;
+      response += `*Sections:* ${sects.found} rows\n`;
+      response += `  → ${sects.new.length} new, ${sects.updated.length} updated, ${sects.unchanged.length} unchanged\n`;
+      if (sects.errors.length > 0) {
+        response += `  ⚠️ ${sects.errors.length} rows skipped (invalid data)\n`;
+      }
+    } else {
+      response += `*Sections:* No data found\n`;
+    }
+    response += '\n';
+  }
+  
+  if (!hasData) {
+    response += '⚠️ No editable data found in Google Sheets.\n';
+    response += 'Make sure the tabs have data with the correct column headers.\n';
+    clearPendingImport();
+  } else {
+    response += '━━━━━━━━━━━━━━━━━━\n';
+    response += '⚠️ This will overwrite SQLite data with Sheets data.\n\n';
+    response += 'Type `/import confirm` to apply, or `/import cancel` to abort.';
+  }
+  
+  return response;
+}
+
 module.exports = {
   help,
   addkey,
@@ -799,5 +971,6 @@ module.exports = {
   listsections,
   editsection,
   sync,
-  sheets: sheetsDebug
+  sheets: sheetsDebug,
+  import: importData
 };
