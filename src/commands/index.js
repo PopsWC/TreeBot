@@ -1,6 +1,7 @@
 const db = require('../database');
 const { resolveRequestKey } = require('../parser');
-const { autoSync } = require('../sync');
+const { autoSync, formatSyncStatus, getSyncStatus, syncAll, syncTab } = require('../sync');
+const sheets = require('../sheets');
 
 // /help
 async function help(args, from, contactName) {
@@ -29,6 +30,7 @@ async function help(args, from, contactName) {
 
 *Utilities:*
 /sync - Sync to Google Sheets
+/sheets - Check Google Sheets status
 /math [box size] [decimal] - Calculate saplings
 /undo - Undo your last action
 /logs [user] - View activity log
@@ -61,12 +63,14 @@ async function addkey(args, from, contactName) {
   db.addActivityLog(from, 'addkey', args.requestKey, null, null);
   
   // Auto-sync to sheets
-  await autoSync('addkey');
+  const syncResult = await autoSync('addkey');
   
   return `✅ Added request key:
 *Key:* ${args.requestKey}
 *Species:* ${species.name}
-${args.shortKey ? `*Short Key:* ${args.shortKey}` : ''}`;
+${args.shortKey ? `*Short Key:* ${args.shortKey}` : ''}
+
+${formatSyncStatus(syncResult)}`;
 }
 
 // /addstock
@@ -109,12 +113,14 @@ async function addstock(args, from, contactName) {
   });
   
   // Auto-sync to sheets
-  await autoSync('addstock');
+  const syncResult = await autoSync('addstock');
   
   return `✅ Added ${args.quantity} to main inventory:
 *Key:* ${args.requestKey}
 *Species:* ${keyData.species_name}
-*New Total:* ${newQuantity}`;
+*New Total:* ${newQuantity}
+
+${formatSyncStatus(syncResult)}`;
 }
 
 // /drop
@@ -184,7 +190,7 @@ async function drop(args, from, contactName) {
   });
   
   // Auto-sync to sheets
-  await autoSync('drop');
+  const syncResult = await autoSync('drop');
   
   const newTotalDropped = totalDropped + args.quantity;
   const newRemaining = allocation.target_quantity - newTotalDropped;
@@ -203,6 +209,8 @@ async function drop(args, from, contactName) {
   } else if (newRemaining < 0) {
     response += `\n\n⚠️ *OVER ALLOCATION!* Section ${args.section} has ${Math.abs(newRemaining)} extra boxes.`;
   }
+  
+  response += `\n\n${formatSyncStatus(syncResult)}`;
   
   return response;
 }
@@ -237,13 +245,15 @@ async function setalloc(args, from, contactName) {
   db.addActivityLog(from, 'setalloc', args.requestKey, args.quantity, args.section);
   
   // Auto-sync to sheets
-  await autoSync('setalloc');
+  const syncResult = await autoSync('setalloc');
   
   return `✅ Set allocation:
 *Key:* ${args.requestKey}
 *Species:* ${keyData.species_name}
 *Section:* ${args.section}
-*Target:* ${args.quantity} boxes`;
+*Target:* ${args.quantity} boxes
+
+${formatSyncStatus(syncResult)}`;
 }
 
 // /status
@@ -599,11 +609,13 @@ async function addsection(args, from, contactName) {
   db.addActivityLog(from, 'addsection', null, null, args.section);
   
   // Auto-sync to sheets
-  await autoSync('addsection');
+  const syncResult = await autoSync('addsection');
   
   return `✅ Section created:
 *ID:* ${args.section}
-*Description:* ${args.description || 'none'}`;
+*Description:* ${args.description || 'none'}
+
+${formatSyncStatus(syncResult)}`;
 }
 
 // /removesection
@@ -637,11 +649,13 @@ Type /removesection ${args.section} confirm to proceed`;
   db.addActivityLog(from, 'removesection', null, null, args.section);
   
   // Auto-sync to sheets
-  await autoSync('removesection');
+  const syncResult = await autoSync('removesection');
   
   return `✅ Section "${args.section}" deleted
 • Removed ${stats.allocations} allocation(s)
-• Removed ${stats.drops} drop record(s)`;
+• Removed ${stats.drops} drop record(s)
+
+${formatSyncStatus(syncResult)}`;
 }
 
 // /listsections
@@ -685,25 +699,85 @@ async function editsection(args, from, contactName) {
   db.addActivityLog(from, 'editsection', null, null, args.section);
   
   // Auto-sync to sheets
-  await autoSync('editsection');
+  const syncResult = await autoSync('editsection');
   
   return `✅ Section "${args.section}" updated:
-*Description:* ${args.description}`;
+*Description:* ${args.description}
+
+${formatSyncStatus(syncResult)}`;
 }
 
 // /sync
 async function sync(args, from, contactName) {
-  const sheetsSync = require('../sync');
-  
   if (args.target) {
     // Sync specific tab
-    const result = await sheetsSync.syncTab(args.target);
-    return result;
+    const result = await syncTab(args.target);
+    if (result.success) {
+      return `✅ ${args.target} synced: ${result.count} rows`;
+    } else {
+      return `❌ Failed to sync ${args.target}: ${result.message}`;
+    }
   }
   
   // Sync all
-  const result = await sheetsSync.syncAll();
-  return result;
+  const result = await syncAll();
+  
+  if (result.success) {
+    const details = result.results.map(r => 
+      `✅ ${r.tab}: ${r.count} rows`
+    ).join('\n');
+    return `🔄 *Sync Complete*\n\n${details}`;
+  } else {
+    const details = result.results.map(r => 
+      r.success ? `✅ ${r.tab}: ${r.count} rows` : `❌ ${r.tab}: ${r.message}`
+    ).join('\n');
+    return `⚠️ *Sync Partially Failed*\n\n${details}`;
+  }
+}
+
+// /sheets
+async function sheetsDebug(args, from, contactName) {
+  const sheetsStatus = sheets.getConnectionStatus();
+  const syncStatus = getSyncStatus();
+  
+  let response = '📊 *GOOGLE SHEETS STATUS*\n\n';
+  
+  // Connection status
+  if (sheetsStatus.connected) {
+    response += `*Connection:* ✅ Connected\n`;
+    response += `*Spreadsheet:* ${sheetsStatus.spreadsheetTitle}\n`;
+    response += `*ID:* ${sheetsStatus.spreadsheetId}\n`;
+  } else {
+    response += `*Connection:* ❌ Disconnected\n`;
+    if (sheetsStatus.error) {
+      response += `*Error:* ${sheetsStatus.error}\n`;
+    }
+    if (!sheetsStatus.hasCredentials) {
+      response += `*Missing:* GOOGLE_SERVICE_ACCOUNT_KEY env var\n`;
+    }
+  }
+  
+  response += '\n*Last Sync Times:*\n';
+  
+  for (const tab of syncStatus.tabs) {
+    const lastSync = tab.lastSync 
+      ? new Date(tab.lastSync).toLocaleString()
+      : 'Never';
+    response += `• ${tab.name}: ${lastSync}\n`;
+  }
+  
+  // Test connection if requested
+  if (args.test) {
+    response += '\n*Testing connection...*\n';
+    const testResult = await sheets.testConnection();
+    if (testResult.success) {
+      response += `✅ Connection OK: ${testResult.spreadsheetTitle}`;
+    } else {
+      response += `❌ Connection failed: ${testResult.error}`;
+    }
+  }
+  
+  return response;
 }
 
 module.exports = {
@@ -724,5 +798,6 @@ module.exports = {
   removesection,
   listsections,
   editsection,
-  sync
+  sync,
+  sheets: sheetsDebug
 };

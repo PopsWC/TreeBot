@@ -10,10 +10,19 @@ const TABS = {
   SECTIONS: 'Sections'
 };
 
+// Track last sync times
+const lastSyncTimes = {
+  [TABS.INVENTORY]: null,
+  [TABS.ALLOCATIONS]: null,
+  [TABS.DROPS]: null,
+  [TABS.LOGS]: null,
+  [TABS.SECTIONS]: null
+};
+
 // Sync inventory tab
 async function syncInventory() {
   if (!sheets.isAvailable()) {
-    return { success: false, message: 'Google Sheets not configured' };
+    return { success: false, message: 'Google Sheets not connected' };
   }
   
   try {
@@ -31,10 +40,16 @@ async function syncInventory() {
     const header = ['Request Key', 'Short Key', 'Species', 'Quantity', 'Last Updated'];
     rows.unshift(header);
     
-    await sheets.replaceTabData(TABS.INVENTORY, rows);
-    console.log(`Synced Inventory: ${inventory.length} rows`);
+    const result = await sheets.replaceTabData(TABS.INVENTORY, rows);
     
-    return { success: true, count: inventory.length };
+    if (result.success) {
+      lastSyncTimes[TABS.INVENTORY] = new Date().toISOString();
+      console.log(`Synced Inventory: ${inventory.length} rows`);
+      return { success: true, count: inventory.length };
+    } else {
+      console.error(`Failed to sync Inventory: ${result.error}`);
+      return { success: false, message: result.error };
+    }
   } catch (error) {
     console.error('Error syncing inventory:', error);
     return { success: false, message: error.message };
@@ -44,7 +59,7 @@ async function syncInventory() {
 // Sync allocations tab
 async function syncAllocations() {
   if (!sheets.isAvailable()) {
-    return { success: false, message: 'Google Sheets not configured' };
+    return { success: false, message: 'Google Sheets not connected' };
   }
   
   try {
@@ -64,10 +79,16 @@ async function syncAllocations() {
     const header = ['Section', 'Request Key', 'Short Key', 'Species', 'Target', 'Dropped', 'Remaining'];
     rows.unshift(header);
     
-    await sheets.replaceTabData(TABS.ALLOCATIONS, rows);
-    console.log(`Synced Allocations: ${allocations.length} rows`);
+    const result = await sheets.replaceTabData(TABS.ALLOCATIONS, rows);
     
-    return { success: true, count: allocations.length };
+    if (result.success) {
+      lastSyncTimes[TABS.ALLOCATIONS] = new Date().toISOString();
+      console.log(`Synced Allocations: ${allocations.length} rows`);
+      return { success: true, count: allocations.length };
+    } else {
+      console.error(`Failed to sync Allocations: ${result.error}`);
+      return { success: false, message: result.error };
+    }
   } catch (error) {
     console.error('Error syncing allocations:', error);
     return { success: false, message: error.message };
@@ -77,7 +98,7 @@ async function syncAllocations() {
 // Sync drop history tab
 async function syncDrops() {
   if (!sheets.isAvailable()) {
-    return { success: false, message: 'Google Sheets not configured' };
+    return { success: false, message: 'Google Sheets not connected' };
   }
   
   try {
@@ -96,10 +117,16 @@ async function syncDrops() {
     const header = ['Timestamp', 'User', 'Request Key', 'Species', 'Quantity', 'Section'];
     rows.unshift(header);
     
-    await sheets.replaceTabData(TABS.DROPS, rows);
-    console.log(`Synced Drop History: ${drops.length} rows`);
+    const result = await sheets.replaceTabData(TABS.DROPS, rows);
     
-    return { success: true, count: drops.length };
+    if (result.success) {
+      lastSyncTimes[TABS.DROPS] = new Date().toISOString();
+      console.log(`Synced Drop History: ${drops.length} rows`);
+      return { success: true, count: drops.length };
+    } else {
+      console.error(`Failed to sync Drop History: ${result.error}`);
+      return { success: false, message: result.error };
+    }
   } catch (error) {
     console.error('Error syncing drops:', error);
     return { success: false, message: error.message };
@@ -109,7 +136,7 @@ async function syncDrops() {
 // Sync activity log tab
 async function syncLogs() {
   if (!sheets.isAvailable()) {
-    return { success: false, message: 'Google Sheets not configured' };
+    return { success: false, message: 'Google Sheets not connected' };
   }
   
   try {
@@ -129,10 +156,16 @@ async function syncLogs() {
     const header = ['Timestamp', 'User', 'Action', 'Request Key', 'Quantity', 'Section', 'Target Section'];
     rows.unshift(header);
     
-    await sheets.replaceTabData(TABS.LOGS, rows);
-    console.log(`Synced Activity Log: ${logs.length} rows`);
+    const result = await sheets.replaceTabData(TABS.LOGS, rows);
     
-    return { success: true, count: logs.length };
+    if (result.success) {
+      lastSyncTimes[TABS.LOGS] = new Date().toISOString();
+      console.log(`Synced Activity Log: ${logs.length} rows`);
+      return { success: true, count: logs.length };
+    } else {
+      console.error(`Failed to sync Activity Log: ${result.error}`);
+      return { success: false, message: result.error };
+    }
   } catch (error) {
     console.error('Error syncing logs:', error);
     return { success: false, message: error.message };
@@ -142,7 +175,7 @@ async function syncLogs() {
 // Sync sections tab
 async function syncSections() {
   if (!sheets.isAvailable()) {
-    return { success: false, message: 'Google Sheets not configured' };
+    return { success: false, message: 'Google Sheets not connected' };
   }
   
   try {
@@ -158,10 +191,16 @@ async function syncSections() {
     const header = ['Section ID', 'Description', 'Created'];
     rows.unshift(header);
     
-    await sheets.replaceTabData(TABS.SECTIONS, rows);
-    console.log(`Synced Sections: ${sections.length} rows`);
+    const result = await sheets.replaceTabData(TABS.SECTIONS, rows);
     
-    return { success: true, count: sections.length };
+    if (result.success) {
+      lastSyncTimes[TABS.SECTIONS] = new Date().toISOString();
+      console.log(`Synced Sections: ${sections.length} rows`);
+      return { success: true, count: sections.length };
+    } else {
+      console.error(`Failed to sync Sections: ${result.error}`);
+      return { success: false, message: result.error };
+    }
   } catch (error) {
     console.error('Error syncing sections:', error);
     return { success: false, message: error.message };
@@ -171,101 +210,200 @@ async function syncSections() {
 // Sync all tabs
 async function syncAll() {
   if (!sheets.isAvailable()) {
-    return '❌ Google Sheets not configured. Set GOOGLE_SHEETS_ID and GOOGLE_SERVICE_ACCOUNT_KEY in .env';
+    return { 
+      success: false, 
+      message: 'Google Sheets not connected',
+      results: []
+    };
   }
   
   const results = [];
   
   const inventoryResult = await syncInventory();
-  results.push(`Inventory: ${inventoryResult.success ? `✅ ${inventoryResult.count} rows` : `❌ ${inventoryResult.message}`}`);
+  results.push({ tab: 'Inventory', ...inventoryResult });
   
   const allocationsResult = await syncAllocations();
-  results.push(`Allocations: ${allocationsResult.success ? `✅ ${allocationsResult.count} rows` : `❌ ${allocationsResult.message}`}`);
+  results.push({ tab: 'Allocations', ...allocationsResult });
   
   const dropsResult = await syncDrops();
-  results.push(`Drop History: ${dropsResult.success ? `✅ ${dropsResult.count} rows` : `❌ ${dropsResult.message}`}`);
+  results.push({ tab: 'Drop History', ...dropsResult });
   
   const logsResult = await syncLogs();
-  results.push(`Activity Log: ${logsResult.success ? `✅ ${logsResult.count} rows` : `❌ ${logsResult.message}`}`);
+  results.push({ tab: 'Activity Log', ...logsResult });
   
   const sectionsResult = await syncSections();
-  results.push(`Sections: ${sectionsResult.success ? `✅ ${sectionsResult.count} rows` : `❌ ${sectionsResult.message}`}`);
+  results.push({ tab: 'Sections', ...sectionsResult });
   
-  return `🔄 *Sync Complete*\n\n${results.join('\n')}`;
+  const allSuccess = results.every(r => r.success);
+  
+  return {
+    success: allSuccess,
+    message: allSuccess ? 'All tabs synced' : 'Some tabs failed to sync',
+    results
+  };
 }
 
 // Sync specific tab
 async function syncTab(target) {
   if (!sheets.isAvailable()) {
-    return '❌ Google Sheets not configured';
+    return { success: false, message: 'Google Sheets not connected' };
   }
   
   const lowerTarget = target.toLowerCase();
   
   if (lowerTarget.includes('inventory')) {
-    const result = await syncInventory();
-    return result.success ? `✅ Inventory synced: ${result.count} rows` : `❌ ${result.message}`;
+    return await syncInventory();
   }
   
   if (lowerTarget.includes('alloc')) {
-    const result = await syncAllocations();
-    return result.success ? `✅ Allocations synced: ${result.count} rows` : `❌ ${result.message}`;
+    return await syncAllocations();
   }
   
   if (lowerTarget.includes('drop')) {
-    const result = await syncDrops();
-    return result.success ? `✅ Drop History synced: ${result.count} rows` : `❌ ${result.message}`;
+    return await syncDrops();
   }
   
   if (lowerTarget.includes('log')) {
-    const result = await syncLogs();
-    return result.success ? `✅ Activity Log synced: ${result.count} rows` : `❌ ${result.message}`;
+    return await syncLogs();
   }
   
   if (lowerTarget.includes('section')) {
-    const result = await syncSections();
-    return result.success ? `✅ Sections synced: ${result.count} rows` : `❌ ${result.message}`;
+    return await syncSections();
   }
   
-  return `❌ Unknown target: ${target}. Use: inventory, allocations, drops, logs, sections`;
+  return { success: false, message: `Unknown target: ${target}. Use: inventory, allocations, drops, logs, sections` };
 }
 
 // Auto-sync specific tabs after actions (called from command handlers)
 async function autoSync(actionType) {
   if (!sheets.isAvailable()) {
-    return; // Silently skip if sheets not configured
+    return { 
+      success: false, 
+      message: 'Google Sheets not connected',
+      synced: [] 
+    };
   }
+  
+  const synced = [];
+  const errors = [];
   
   try {
     switch (actionType) {
       case 'addstock':
-      case 'drop':
-        await syncInventory();
-        await syncAllocations();
-        await syncDrops();
-        await syncLogs();
+      case 'drop': {
+        const inv = await syncInventory();
+        const alloc = await syncAllocations();
+        const drops = await syncDrops();
+        const logs = await syncLogs();
+        
+        if (inv.success) synced.push('Inventory');
+        else errors.push(`Inventory: ${inv.message}`);
+        
+        if (alloc.success) synced.push('Allocations');
+        else errors.push(`Allocations: ${alloc.message}`);
+        
+        if (drops.success) synced.push('Drops');
+        else errors.push(`Drops: ${drops.message}`);
+        
+        if (logs.success) synced.push('Logs');
+        else errors.push(`Logs: ${logs.message}`);
         break;
-      case 'setalloc':
-        await syncAllocations();
-        await syncLogs();
+      }
+      
+      case 'setalloc': {
+        const alloc = await syncAllocations();
+        const logs = await syncLogs();
+        
+        if (alloc.success) synced.push('Allocations');
+        else errors.push(`Allocations: ${alloc.message}`);
+        
+        if (logs.success) synced.push('Logs');
+        else errors.push(`Logs: ${logs.message}`);
         break;
+      }
+      
       case 'addsection':
       case 'removesection':
-      case 'editsection':
-        await syncSections();
-        await syncAllocations();
-        await syncLogs();
+      case 'editsection': {
+        const sections = await syncSections();
+        const alloc = await syncAllocations();
+        const logs = await syncLogs();
+        
+        if (sections.success) synced.push('Sections');
+        else errors.push(`Sections: ${sections.message}`);
+        
+        if (alloc.success) synced.push('Allocations');
+        else errors.push(`Allocations: ${alloc.message}`);
+        
+        if (logs.success) synced.push('Logs');
+        else errors.push(`Logs: ${logs.message}`);
         break;
-      case 'addkey':
-        await syncInventory();
-        await syncLogs();
+      }
+      
+      case 'addkey': {
+        const inv = await syncInventory();
+        const logs = await syncLogs();
+        
+        if (inv.success) synced.push('Inventory');
+        else errors.push(`Inventory: ${inv.message}`);
+        
+        if (logs.success) synced.push('Logs');
+        else errors.push(`Logs: ${logs.message}`);
         break;
-      default:
+      }
+      
+      default: {
         // Unknown action, sync all
-        await syncAll();
+        const allResult = await syncAll();
+        if (allResult.success) {
+          synced.push('All tabs');
+        } else {
+          errors.push('Some tabs failed');
+        }
+      }
     }
+    
+    return {
+      success: errors.length === 0,
+      message: errors.length === 0 
+        ? `Synced: ${synced.join(', ')}`
+        : `Synced: ${synced.join(', ')}${errors.length > 0 ? `\nFailed: ${errors.join(', ')}` : ''}`,
+      synced,
+      errors
+    };
   } catch (error) {
     console.error('Auto-sync error:', error);
+    return {
+      success: false,
+      message: `Sync error: ${error.message}`,
+      synced,
+      errors: [error.message]
+    };
+  }
+}
+
+// Get sync status for debugging
+function getSyncStatus() {
+  return {
+    available: sheets.isAvailable(),
+    lastSyncTimes,
+    tabs: Object.keys(TABS).map(key => ({
+      name: TABS[key],
+      lastSync: lastSyncTimes[TABS[key]]
+    }))
+  };
+}
+
+// Format sync status for display
+function formatSyncStatus(syncResult) {
+  if (!syncResult) return '';
+  
+  if (syncResult.success) {
+    return `📊 Sync: ✅ ${syncResult.synced.join(', ')}`;
+  } else {
+    const synced = syncResult.synced.length > 0 ? `✅ ${syncResult.synced.join(', ')}` : '';
+    const failed = syncResult.errors.length > 0 ? `❌ ${syncResult.errors.join(', ')}` : '';
+    return `📊 Sync: ${[synced, failed].filter(Boolean).join(' | ')}`;
   }
 }
 
@@ -278,5 +416,7 @@ module.exports = {
   syncAll,
   syncTab,
   autoSync,
+  getSyncStatus,
+  formatSyncStatus,
   TABS
 };

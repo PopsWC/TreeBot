@@ -4,6 +4,7 @@ const { parseCommand } = require('./parser');
 const { extractMessageData, generateTwiML } = require('./whatsapp');
 const commands = require('./commands');
 const sheets = require('./sheets');
+const sync = require('./sync');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,15 +16,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
-});
-
-// Initialize Google Sheets on startup
-sheets.initializeSheets().then(success => {
-  if (success) {
-    console.log('Google Sheets integration enabled');
-  } else {
-    console.log('Google Sheets integration disabled (configure in .env)');
-  }
 });
 
 // WhatsApp webhook (Twilio)
@@ -88,7 +80,29 @@ app.post('/whatsapp', async (req, res) => {
 
 // Health check
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    googleSheets: sheets.isAvailable() ? 'connected' : 'disconnected'
+  });
+});
+
+// Status endpoint for debugging
+app.get('/status', async (req, res) => {
+  const sheetsStatus = sheets.getConnectionStatus();
+  const syncStatus = sync.getSyncStatus();
+  
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    twilio: {
+      accountSid: process.env.TWILIO_ACCOUNT_SID ? 'configured' : 'MISSING',
+      authToken: process.env.TWILIO_AUTH_TOKEN ? 'configured' : 'MISSING',
+      whatsappNumber: process.env.TWILIO_WHATSAPP_NUMBER || 'MISSING'
+    },
+    googleSheets: sheetsStatus,
+    sync: syncStatus
+  });
 });
 
 // 404 handler
@@ -96,9 +110,36 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Start server after initialization
+async function startServer() {
+  console.log('=== Starting Tree Planting Bot ===');
+  
+  // Log Twilio config
   console.log('Twilio Account SID:', process.env.TWILIO_ACCOUNT_SID ? 'configured' : 'MISSING');
   console.log('Twilio Auth Token:', process.env.TWILIO_AUTH_TOKEN ? 'configured' : 'MISSING');
   console.log('Twilio WhatsApp Number:', process.env.TWILIO_WHATSAPP_NUMBER || 'MISSING');
+  
+  // Initialize Google Sheets BEFORE starting server
+  console.log('\n--- Initializing Google Sheets ---');
+  const sheetsReady = await sheets.initializeSheets();
+  
+  if (sheetsReady) {
+    console.log('✅ Google Sheets connected and ready');
+  } else {
+    console.log('⚠️ Google Sheets not available (check .env configuration)');
+  }
+  
+  // Start Express server
+  app.listen(PORT, () => {
+    console.log(`\n=== Server running on port ${PORT} ===`);
+    console.log('Webhook URL: /whatsapp');
+    console.log('Status URL: /status');
+    console.log('Google Sheets:', sheetsReady ? 'CONNECTED' : 'DISCONNECTED');
+    console.log('================================\n');
+  });
+}
+
+startServer().catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
 });
