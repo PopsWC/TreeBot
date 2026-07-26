@@ -35,6 +35,18 @@ const lastSyncTimes = {
 // Pending import storage
 let pendingImport = null;
 
+// Timeout protection for sync operations
+const SYNC_TIMEOUT_MS = 10000;
+
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Operation timed out')), ms)
+    )
+  ]);
+}
+
 // Sync inventory tab
 async function syncInventory() {
   if (!sheets.isAvailable()) {
@@ -334,6 +346,101 @@ async function syncTab(target) {
   return { success: false, message: `Unknown target: ${target}. Use: inventory, allocations, drops, logs, sections, request keys` };
 }
 
+// Execute sync action (internal helper)
+async function executeSyncAction(actionType, synced, errors) {
+  switch (actionType) {
+    case 'addstock':
+    case 'drop': {
+      const inv = await syncInventory();
+      const alloc = await syncAllocations();
+      const drops = await syncDrops();
+      const logs = await syncLogs();
+      
+      if (inv.success) synced.push('Inventory');
+      else errors.push(`Inventory: ${inv.message}`);
+      
+      if (alloc.success) synced.push('Allocations');
+      else errors.push(`Allocations: ${alloc.message}`);
+      
+      if (drops.success) synced.push('Drops');
+      else errors.push(`Drops: ${drops.message}`);
+      
+      if (logs.success) synced.push('Logs');
+      else errors.push(`Logs: ${logs.message}`);
+      break;
+    }
+    
+    case 'setalloc': {
+      const alloc = await syncAllocations();
+      const logs = await syncLogs();
+      
+      if (alloc.success) synced.push('Allocations');
+      else errors.push(`Allocations: ${alloc.message}`);
+      
+      if (logs.success) synced.push('Logs');
+      else errors.push(`Logs: ${logs.message}`);
+      break;
+    }
+    
+    case 'addsection':
+    case 'removesection':
+    case 'editsection': {
+      const sections = await syncSections();
+      const alloc = await syncAllocations();
+      const logs = await syncLogs();
+      
+      if (sections.success) synced.push('Sections');
+      else errors.push(`Sections: ${sections.message}`);
+      
+      if (alloc.success) synced.push('Allocations');
+      else errors.push(`Allocations: ${alloc.message}`);
+      
+      if (logs.success) synced.push('Logs');
+      else errors.push(`Logs: ${logs.message}`);
+      break;
+    }
+    
+    case 'addkey': {
+      const inv = await syncInventory();
+      const requestKeys = await syncRequestKeys();
+      const logs = await syncLogs();
+      
+      if (inv.success) synced.push('Inventory');
+      else errors.push(`Inventory: ${inv.message}`);
+      
+      if (requestKeys.success) synced.push('Request Keys');
+      else errors.push(`Request Keys: ${requestKeys.message}`);
+      
+      if (logs.success) synced.push('Logs');
+      else errors.push(`Logs: ${logs.message}`);
+      break;
+    }
+    
+    case 'import': {
+      const allResult = await syncAll();
+      if (allResult.success) {
+        synced.push('All tabs');
+      } else {
+        for (const r of allResult.results) {
+          if (r.success) synced.push(r.tab);
+          else errors.push(`${r.tab}: ${r.message}`);
+        }
+      }
+      break;
+    }
+    
+    default: {
+      // Unknown action, sync all
+      const allResult = await syncAll();
+      if (allResult.success) {
+        synced.push('All tabs');
+      } else {
+        errors.push('Some tabs failed');
+      }
+    }
+  }
+}
+
 // Auto-sync specific tabs after actions (called from command handlers)
 async function autoSync(actionType) {
   if (!sheets.isAvailable()) {
@@ -348,97 +455,8 @@ async function autoSync(actionType) {
   const errors = [];
   
   try {
-    switch (actionType) {
-      case 'addstock':
-      case 'drop': {
-        const inv = await syncInventory();
-        const alloc = await syncAllocations();
-        const drops = await syncDrops();
-        const logs = await syncLogs();
-        
-        if (inv.success) synced.push('Inventory');
-        else errors.push(`Inventory: ${inv.message}`);
-        
-        if (alloc.success) synced.push('Allocations');
-        else errors.push(`Allocations: ${alloc.message}`);
-        
-        if (drops.success) synced.push('Drops');
-        else errors.push(`Drops: ${drops.message}`);
-        
-        if (logs.success) synced.push('Logs');
-        else errors.push(`Logs: ${logs.message}`);
-        break;
-      }
-      
-      case 'setalloc': {
-        const alloc = await syncAllocations();
-        const logs = await syncLogs();
-        
-        if (alloc.success) synced.push('Allocations');
-        else errors.push(`Allocations: ${alloc.message}`);
-        
-        if (logs.success) synced.push('Logs');
-        else errors.push(`Logs: ${logs.message}`);
-        break;
-      }
-      
-      case 'addsection':
-      case 'removesection':
-      case 'editsection': {
-        const sections = await syncSections();
-        const alloc = await syncAllocations();
-        const logs = await syncLogs();
-        
-        if (sections.success) synced.push('Sections');
-        else errors.push(`Sections: ${sections.message}`);
-        
-        if (alloc.success) synced.push('Allocations');
-        else errors.push(`Allocations: ${alloc.message}`);
-        
-        if (logs.success) synced.push('Logs');
-        else errors.push(`Logs: ${logs.message}`);
-        break;
-      }
-      
-      case 'addkey': {
-        const inv = await syncInventory();
-        const requestKeys = await syncRequestKeys();
-        const logs = await syncLogs();
-        
-        if (inv.success) synced.push('Inventory');
-        else errors.push(`Inventory: ${inv.message}`);
-        
-        if (requestKeys.success) synced.push('Request Keys');
-        else errors.push(`Request Keys: ${requestKeys.message}`);
-        
-        if (logs.success) synced.push('Logs');
-        else errors.push(`Logs: ${logs.message}`);
-        break;
-      }
-      
-      case 'import': {
-        const allResult = await syncAll();
-        if (allResult.success) {
-          synced.push('All tabs');
-        } else {
-          for (const r of allResult.results) {
-            if (r.success) synced.push(r.tab);
-            else errors.push(`${r.tab}: ${r.message}`);
-          }
-        }
-        break;
-      }
-      
-      default: {
-        // Unknown action, sync all
-        const allResult = await syncAll();
-        if (allResult.success) {
-          synced.push('All tabs');
-        } else {
-          errors.push('Some tabs failed');
-        }
-      }
-    }
+    // Add timeout protection to prevent webhook issues
+    await withTimeout(executeSyncAction(actionType, synced, errors), SYNC_TIMEOUT_MS);
     
     return {
       success: errors.length === 0,
@@ -449,6 +467,20 @@ async function autoSync(actionType) {
       errors
     };
   } catch (error) {
+    if (error.message === 'Operation timed out') {
+      console.log('Sync timed out, continuing asynchronously');
+      // Fire and forget - don't block response
+      executeSyncAction(actionType, [], []).catch(err => 
+        console.error('Background sync error:', err)
+      );
+      return { 
+        success: true, 
+        message: 'Sync started (async)', 
+        synced: [], 
+        errors: [] 
+      };
+    }
+    
     console.error('Auto-sync error:', error);
     return {
       success: false,

@@ -55,9 +55,18 @@ function extractMessageData(body) {
   }
 }
 
+const MAX_MESSAGE_LENGTH = 4000;
+
+function truncateMessage(message) {
+  if (!message || message.length <= MAX_MESSAGE_LENGTH) {
+    return message;
+  }
+  return message.substring(0, MAX_MESSAGE_LENGTH - 20) + '\n\n... (truncated)';
+}
+
 function generateTwiML(message) {
   const twiml = new MessagingResponse();
-  twiml.message(message);
+  twiml.message(truncateMessage(message));
   return twiml.toString();
 }
 
