@@ -103,7 +103,8 @@ app.post('/whatsapp', async (req, res) => {
   
   // Respond immediately to prevent webhook timeout
   // We'll process the command async and send the result via REST API
-  res.sendStatus(200);
+  // IMPORTANT: Do NOT use res.sendStatus(200) - Twilio sends "OK" as a WhatsApp message!
+  res.status(200).end();
   
   if (!req.body) {
     console.error('ERROR: req.body is undefined/null');
