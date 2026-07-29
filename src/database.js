@@ -2,12 +2,14 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-const dataDir = path.join(__dirname, '..', 'data');
+// DB location: DB_PATH env var (e.g. Railway volume at /data) or local ./data
+const dataDir = process.env.DB_PATH || path.join(__dirname, '..', 'data');
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
 const dbPath = path.join(dataDir, 'inventory.db');
+console.log(`Database: ${dbPath}${process.env.DB_PATH ? ' (persistent volume)' : ' (ephemeral — set DB_PATH for persistence)'}`);
 const db = new Database(dbPath);
 
 // Enable WAL mode for better concurrent access
