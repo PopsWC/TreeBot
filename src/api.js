@@ -20,12 +20,16 @@ const WEB_USER = { from: 'web', name: 'Web UI' };
 
 // Wrap a command handler so web actions behave exactly like WhatsApp commands
 // (same validation, logging, undo history, Sheets auto-sync).
-function handle(handler) {
+function handle(handler, coerceQuantity = false) {
   return async (req, res) => {
     try {
+      if (coerceQuantity && req.body && req.body.quantity !== undefined) {
+        req.body.quantity = Number(req.body.quantity);
+      }
       const text = await handler(req.body, WEB_USER.from, WEB_USER.name);
-      const ok = typeof text === 'string' && !text.startsWith('❌');
-      res.status(ok ? 200 : 400).json({ ok, message: text });
+      // ❌ = error, ⚠️ = rejected with warning (e.g. over-allocation) — both non-ok
+      const rejected = typeof text === 'string' && (text.startsWith('❌') || text.startsWith('⚠️'));
+      res.status(rejected ? 400 : 200).json({ ok: !rejected, message: text });
     } catch (e) {
       console.error('API handler error:', e);
       res.status(500).json({ ok: false, message: e.message });
@@ -65,9 +69,9 @@ router.get('/sheets/status', (req, res) => res.json({
 
 // ---- Mutation endpoints (reuse WhatsApp command handlers) ----
 
-router.post('/drops', handle(commands.drop));
-router.post('/stock', handle(commands.addstock));
-router.post('/allocations', handle(commands.setalloc));
+router.post('/drops', handle(commands.drop, true));
+router.post('/stock', handle(commands.addstock, true));
+router.post('/allocations', handle(commands.setalloc, true));
 router.post('/keys', handle(commands.addkey));
 router.post('/sections', handle(commands.addsection));
 router.post('/undo', handle(commands.undo));

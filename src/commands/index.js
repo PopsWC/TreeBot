@@ -55,6 +55,14 @@ async function addkey(args, from, contactName) {
   if (existing) {
     return `❌ Request key "${args.requestKey}" already exists (${existing.species_name})`;
   }
+
+  // Short keys must be unique — a duplicate makes short-key resolution permanently ambiguous
+  if (args.shortKey) {
+    const shortConflicts = db.getRequestKeyByShort(args.shortKey);
+    if (shortConflicts.length > 0) {
+      return `❌ Short key "${args.shortKey}" is already used by ${shortConflicts[0].request_key}. Choose a different short key.`;
+    }
+  }
   
   // Get or create species
   let species = db.getSpecies(args.species);
@@ -86,8 +94,8 @@ async function addstock(args, from, contactName) {
     return '❌ Usage: /addstock [quantity] [request_key]\nExample: /addstock 100 gg-2024-068';
   }
   
-  if (args.quantity <= 0) {
-    return '❌ Quantity must be greater than 0';
+  if (!Number.isInteger(args.quantity) || args.quantity <= 0) {
+    return '❌ Quantity must be a positive whole number';
   }
   
   // Resolve request key
@@ -133,8 +141,8 @@ async function drop(args, from, contactName) {
     return '❌ Usage: /drop [quantity] [request_key] [section]\nExample: /drop 10 068 6';
   }
   
-  if (args.quantity <= 0) {
-    return '❌ Quantity must be greater than 0';
+  if (!Number.isInteger(args.quantity) || args.quantity <= 0) {
+    return '❌ Quantity must be a positive whole number';
   }
   
   // Resolve request key
@@ -220,8 +228,8 @@ async function setalloc(args, from, contactName) {
     return '❌ Usage: /setalloc [quantity] [request_key] [section]\nExample: /setalloc 200 068 6';
   }
   
-  if (args.quantity <= 0) {
-    return '❌ Quantity must be greater than 0';
+  if (!Number.isInteger(args.quantity) || args.quantity <= 0) {
+    return '❌ Quantity must be a positive whole number';
   }
   
   // Resolve request key

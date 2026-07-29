@@ -60,9 +60,17 @@ function cleanProcessedMessages() {
 }
 
 // WhatsApp webhook (Twilio)
-// Twilio webhook middleware validates the X-Twilio-Signature header
-// Only validates in production (Railway) to allow local testing
-app.post('/whatsapp', twilio.webhook({ validate: process.env.NODE_ENV === 'production' }), async (req, res) => {
+// Twilio webhook middleware validates the X-Twilio-Signature header.
+// Validation is ON by default in every environment — a public webhook without
+// signature validation lets anyone forge WhatsApp commands.
+// Set TWILIO_SKIP_VALIDATION=true ONLY for local development.
+const skipValidation = process.env.TWILIO_SKIP_VALIDATION === 'true';
+if (skipValidation) {
+  console.warn('⚠️  Twilio webhook signature validation DISABLED (TWILIO_SKIP_VALIDATION=true) — do not use in production');
+} else if (!process.env.TWILIO_AUTH_TOKEN) {
+  console.warn('⚠️  TWILIO_AUTH_TOKEN missing — webhook validation will reject all requests');
+}
+app.post('/whatsapp', twilio.webhook({ validate: !skipValidation }), async (req, res) => {
   console.log('--- Webhook received ---');
 
   if (!req.body) {

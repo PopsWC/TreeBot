@@ -34,6 +34,7 @@ Web actions go through the same logic as WhatsApp commands — undo history, act
 |----------|---------|
 | `WEB_UI_URL` | Public URL of the deployment (e.g. `https://treebot.up.railway.app`). When set, `/help` in WhatsApp replies with the web link. |
 | `WEB_UI_TOKEN` | Optional. If set, the web UI requires this bearer token (entered once in the browser) before any data loads. Recommended on public deployments. |
+| `TWILIO_SKIP_VALIDATION` | Local dev only. Webhook signature validation is **on by default**; set to `true` to disable when testing locally without Twilio signatures. Never set in production. |
 
 ## Commands
 

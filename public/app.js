@@ -16,8 +16,12 @@ async function api(path, options = {}) {
   if (opts.body && typeof opts.body !== 'string') opts.body = JSON.stringify(opts.body);
   const res = await fetch('/api' + path, opts);
   if (res.status === 401) {
+    authToken = '';
+    localStorage.removeItem('treebot_token');
     showLogin();
-    throw new Error('Access token required');
+    const err = new Error('unauthorized');
+    err.isAuth = true;
+    throw err;
   }
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -199,10 +203,16 @@ screens.drop = async () => {
         const btn = e.target;
         btn.disabled = true;
         try {
+          const q = parseInt(qty.value, 10);
+          if (!Number.isInteger(q) || q <= 0) {
+            toast('❌ Enter a valid quantity (whole number > 0)', true);
+            btn.disabled = false;
+            return;
+          }
           const res = await api('/drops', {
             method: 'POST',
             body: {
-              quantity: parseInt(qty.value, 10),
+              quantity: q,
               requestKey: document.getElementById('d-key').value,
               section: sectionSel.value
             }
@@ -256,10 +266,16 @@ screens.stock = async () => {
   document.getElementById('s-plus').onclick = () => { qty.value = (parseInt(qty.value) || 0) + 1; };
   document.getElementById('s-submit').onclick = async e => {
     e.target.disabled = true;
+    const q = parseInt(qty.value, 10);
+    if (!Number.isInteger(q) || q <= 0) {
+      toast('❌ Enter a valid quantity (whole number > 0)', true);
+      e.target.disabled = false;
+      return;
+    }
     try {
       resultToast(await api('/stock', {
         method: 'POST',
-        body: { quantity: parseInt(qty.value, 10), requestKey: document.getElementById('s-key').value }
+        body: { quantity: q, requestKey: document.getElementById('s-key').value }
       }));
       screens.stock();
     } catch (err) {
@@ -316,11 +332,17 @@ screens.allocations = async () => {
   document.getElementById('a-plus').onclick = () => { qty.value = (parseInt(qty.value) || 0) + 1; };
   document.getElementById('a-submit').onclick = async e => {
     e.target.disabled = true;
+    const q = parseInt(qty.value, 10);
+    if (!Number.isInteger(q) || q <= 0) {
+      toast('❌ Enter a valid quantity (whole number > 0)', true);
+      e.target.disabled = false;
+      return;
+    }
     try {
       resultToast(await api('/allocations', {
         method: 'POST',
         body: {
-          quantity: parseInt(qty.value, 10),
+          quantity: q,
           requestKey: document.getElementById('a-key').value,
           section: document.getElementById('a-section').value
         }
@@ -460,27 +482,38 @@ screens.sections = async () => {
   view.querySelectorAll('[data-del]').forEach(btn => {
     btn.onclick = async () => {
       const id = btn.dataset.del;
+      // First call without confirm -> server returns 400 with the ⚠️ stats prompt
+      let warnMessage;
       try {
-        // First call without confirm -> server returns warning + stats
         const warn = await api('/sections/' + encodeURIComponent(id), { method: 'DELETE' });
-        modal(`
-          <h3>⚠️ Delete Section ${esc(id)}?</h3>
-          <p>${esc(clean(warn.message))}</p>
-          <div class="row">
-            <button class="btn secondary" id="m-cancel">Cancel</button>
-            <button class="btn danger" id="m-confirm">Delete</button>
-          </div>`);
-        document.getElementById('m-cancel').onclick = closeModal;
-        document.getElementById('m-confirm').onclick = async () => {
-          try {
-            resultToast(await api('/sections/' + encodeURIComponent(id) + '?confirmed=true', { method: 'DELETE' }));
-            closeModal();
-            screens.sections();
-          } catch (err) { toast(clean(err.message), true, 6000); closeModal(); }
-        };
+        warnMessage = warn.message;
       } catch (err) {
-        toast(clean(err.message), true, 6000);
+        if (err.status === 400 && err.message.includes('⚠️')) {
+          warnMessage = err.message;
+        } else if (err.status === 400 && err.message.includes('not found')) {
+          toast(clean(err.message), true, 6000);
+          return;
+        } else {
+          toast(clean(err.message), true, 6000);
+          return;
+        }
       }
+      modal(`
+        <h3>⚠️ Delete Section ${esc(id)}?</h3>
+        <p>${esc(clean(warnMessage))}</p>
+        <div class="row">
+          <button class="btn secondary" id="m-cancel">Cancel</button>
+          <button class="btn danger" id="m-confirm">Delete</button>
+        </div>`);
+      document.getElementById('m-cancel').onclick = closeModal;
+      document.getElementById('m-confirm').onclick = async (e) => {
+        e.target.disabled = true;
+        try {
+          resultToast(await api('/sections/' + encodeURIComponent(id) + '?confirmed=true', { method: 'DELETE' }));
+          closeModal();
+          screens.sections();
+        } catch (err) { toast(clean(err.message), true, 6000); closeModal(); }
+      };
     };
   });
 };
@@ -621,6 +654,7 @@ async function show(tab) {
   try {
     await screens[tab]();
   } catch (e) {
+    if (e.isAuth) return; // login form already shown — don't overwrite it
     errView(e);
   }
 }

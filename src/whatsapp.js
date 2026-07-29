@@ -25,8 +25,8 @@ async function sendWhatsAppMessage(to, message) {
   try {
     await twilioClient.messages.create({
       body: message,
-      from: TWILIO_WHATSAPP,
-      to: `whatsapp:${to}`
+      from: TWILIO_WHATSAPP.startsWith('whatsapp:') ? TWILIO_WHATSAPP : `whatsapp:${TWILIO_WHATSAPP}`,
+      to: to.startsWith('whatsapp:') ? to : `whatsapp:${to}`
     });
     return true;
   } catch (error) {
@@ -55,7 +55,8 @@ function extractMessageData(body) {
   }
 }
 
-const MAX_MESSAGE_LENGTH = 4000;
+// Twilio's WhatsApp body limit is 1600 chars; stay safely under it
+const MAX_MESSAGE_LENGTH = 1500;
 
 function truncateMessage(message) {
   if (!message || message.length <= MAX_MESSAGE_LENGTH) {
