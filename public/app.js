@@ -8,10 +8,12 @@ let toastTimer = null;
 // ---------- helpers ----------
 
 let authToken = localStorage.getItem('treebot_token') || '';
+let userName = localStorage.getItem('treebot_username') || '';
 
 async function api(path, options = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  if (userName) headers['X-User-Name'] = userName;
   const opts = { headers, ...options };
   if (opts.body && typeof opts.body !== 'string') opts.body = JSON.stringify(opts.body);
   const res = await fetch('/api' + path, opts);
@@ -297,11 +299,12 @@ screens.allocations = async () => {
     if (allocs.length === 0) return;
     any = true;
     html += `<div class="card"><h3>Section ${esc(s.id)}</h3><table>
-      <tr><th>Key</th><th style="text-align:right">Dropped</th><th style="text-align:right">Target</th></tr>
+      <tr><th>Key</th><th style="text-align:right">Dropped</th><th style="text-align:right">Target</th><th></th></tr>
       ${allocs.map(a => `<tr>
         <td>${esc(a.request_key)}</td>
         <td style="text-align:right">${a.dropped}</td>
         <td style="text-align:right">${a.target_quantity}</td>
+        <td style="text-align:right">${a.dropped === 0 ? `<button class="btn small danger" data-delalloc="${esc(s.id)}|${esc(a.request_key)}">✕</button>` : ''}</td>
       </tr>`).join('')}
     </table></div>`;
   });
@@ -326,6 +329,24 @@ screens.allocations = async () => {
 
   view.innerHTML = html;
   if (sections.length === 0 || keys.length === 0) return;
+
+  // Allocation delete buttons (quantity 0 = remove, only shown when no drops yet)
+  view.querySelectorAll('[data-delalloc]').forEach(btn => {
+    btn.onclick = async () => {
+      const [section, requestKey] = btn.dataset.delalloc.split('|');
+      btn.disabled = true;
+      try {
+        resultToast(await api('/allocations', {
+          method: 'POST',
+          body: { quantity: 0, requestKey, section }
+        }));
+        screens.allocations();
+      } catch (err) {
+        toast(clean(err.message), true, 6000);
+        btn.disabled = false;
+      }
+    };
+  });
 
   const qty = document.getElementById('a-qty');
   document.getElementById('a-minus').onclick = () => { qty.value = Math.max(1, (parseInt(qty.value) || 1) - 1); };
@@ -532,9 +553,10 @@ screens.activity = async () => {
     html += '<div class="empty">No activity yet.</div>';
   } else {
     html += `<div class="card"><table>
-      <tr><th>When</th><th>Action</th><th>Details</th></tr>
+      <tr><th>When</th><th>Who</th><th>Action</th><th>Details</th></tr>
       ${logs.map(l => `<tr>
         <td class="muted" style="white-space:nowrap">${esc((l.created_at || '').slice(5, 16))}</td>
+        <td class="muted">${esc(l.user_phone)}</td>
         <td>${esc(l.action)}</td>
         <td>${[l.request_key, l.quantity ? '×' + l.quantity : '', l.section ? 'sec ' + l.section : ''].filter(Boolean).map(esc).join(' ')}</td>
       </tr>`).join('')}
@@ -643,6 +665,43 @@ screens.sheets = async () => {
   }
 };
 
+// ---------- user identity (name picker, no accounts) ----------
+
+const badge = document.getElementById('user-badge');
+
+function updateBadge() {
+  if (userName) {
+    badge.textContent = `👤 ${userName}`;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+function showNamePrompt() {
+  view.innerHTML = `
+    <div class="card" style="margin-top:40px">
+      <h3>👤 What's your name?</h3>
+      <div class="sub" style="margin-bottom:6px">Used to label your drops and undo your own actions. No password needed.</div>
+      <input type="text" id="name-input" placeholder="e.g. Andrew" maxlength="40" autocomplete="off">
+      <button class="btn" id="name-btn">Continue</button>
+    </div>`;
+  const input = document.getElementById('name-input');
+  const save = () => {
+    const v = input.value.trim();
+    if (!v) { toast('❌ Please enter your name', true); return; }
+    userName = v;
+    localStorage.setItem('treebot_username', v);
+    updateBadge();
+    show(current);
+  };
+  document.getElementById('name-btn').onclick = save;
+  input.onkeydown = e => { if (e.key === 'Enter') save(); };
+  input.focus();
+}
+
+badge.onclick = () => { showNamePrompt(); };
+
 // ---------- router ----------
 
 const tabBtns = document.querySelectorAll('#tabs button');
@@ -661,4 +720,9 @@ async function show(tab) {
 
 tabBtns.forEach(b => { b.onclick = () => show(b.dataset.tab); });
 
-show('dashboard');
+updateBadge();
+if (!userName) {
+  showNamePrompt();
+} else {
+  show('dashboard');
+}

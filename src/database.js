@@ -137,6 +137,24 @@ const dbHelpers = {
     `).all(shortKey);
   },
 
+  getRequestKeyCaseInsensitive(key) {
+    return db.prepare(`
+      SELECT rk.*, s.name as species_name
+      FROM request_keys rk
+      JOIN species s ON rk.species_id = s.id
+      WHERE rk.request_key = ? COLLATE NOCASE
+    `).all(key);
+  },
+
+  getRequestKeyByShortCaseInsensitive(shortKey) {
+    return db.prepare(`
+      SELECT rk.*, s.name as species_name
+      FROM request_keys rk
+      JOIN species s ON rk.species_id = s.id
+      WHERE rk.short_key = ? COLLATE NOCASE
+    `).all(shortKey);
+  },
+
   createRequestKey(requestKey, speciesId, shortKey = null, notes = null) {
     const result = db.prepare(
       'INSERT INTO request_keys (request_key, species_id, short_key, notes) VALUES (?, ?, ?, ?)'
@@ -158,7 +176,7 @@ const dbHelpers = {
       SELECT rk.*, s.name as species_name 
       FROM request_keys rk 
       JOIN species s ON rk.species_id = s.id 
-      WHERE s.name = ?
+      WHERE s.name = ? COLLATE NOCASE
       ORDER BY rk.request_key
     `).all(speciesName);
   },
@@ -203,7 +221,7 @@ const dbHelpers = {
     const existing = db.prepare(
       'SELECT * FROM section_allocations WHERE section = ? AND request_key_id = ?'
     ).get(section, requestKeyId);
-    
+
     if (existing) {
       db.prepare(
         'UPDATE section_allocations SET target_quantity = ? WHERE section = ? AND request_key_id = ?'
@@ -213,6 +231,12 @@ const dbHelpers = {
         'INSERT INTO section_allocations (section, request_key_id, target_quantity) VALUES (?, ?, ?)'
       ).run(section, requestKeyId, targetQuantity);
     }
+  },
+
+  deleteAllocation(section, requestKeyId) {
+    return db.prepare(
+      'DELETE FROM section_allocations WHERE section = ? AND request_key_id = ?'
+    ).run(section, requestKeyId);
   },
 
   getSectionAllocations(section) {

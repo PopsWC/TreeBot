@@ -28,6 +28,10 @@ The bot serves a mobile-friendly web interface at `/` (the root URL of your depl
 
 Web actions go through the same logic as WhatsApp commands — undo history, activity logs, and Sheets auto-sync work identically.
 
+### User identity
+
+The web UI asks for your name once (stored in the browser, no accounts or passwords). Actions are attributed to that name in the activity log, and **Undo only affects your own actions** — same as WhatsApp. Tap the name badge in the header to switch names.
+
 ### Environment variables
 
 | Variable | Purpose |

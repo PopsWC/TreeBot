@@ -22,7 +22,7 @@ async function help(args, from, contactName) {
 /editsection [id] [desc] - Update description
 
 *Allocation & Drops:*
-/setalloc [qty] [key] section [s] - Set allocation target
+/setalloc [qty] [key] section [s] - Set allocation target (0 = remove)
 /drop [qty] [key] section [s] - Log boxes dropped
 
 *Status & Info:*
@@ -222,19 +222,19 @@ async function drop(args, from, contactName) {
   return response;
 }
 
-// /setalloc
+// /setalloc  (quantity 0 = remove allocation)
 async function setalloc(args, from, contactName) {
-  if (!args || !args.quantity || !args.requestKey || !args.section) {
-    return '❌ Usage: /setalloc [quantity] [request_key] [section]\nExample: /setalloc 200 068 6';
+  if (!args || args.quantity === undefined || args.quantity === null || !args.requestKey || !args.section) {
+    return '❌ Usage: /setalloc [quantity] [request_key] [section]\nExample: /setalloc 200 068 6\nUse 0 to remove an allocation.';
   }
-  
-  if (!Number.isInteger(args.quantity) || args.quantity <= 0) {
-    return '❌ Quantity must be a positive whole number';
+
+  if (!Number.isInteger(args.quantity) || args.quantity < 0) {
+    return '❌ Quantity must be a whole number (0 removes the allocation)';
   }
-  
+
   // Resolve request key
   const resolved = resolveRequestKey(args.requestKey);
-  
+
   if (!resolved.resolved) {
     if (resolved.ambiguous) {
       const matches = resolved.matches.map(m => `• ${m.request_key} (${m.species_name})`).join('\n');
@@ -242,9 +242,26 @@ async function setalloc(args, from, contactName) {
     }
     return `❌ Request key "${args.requestKey}" not found.`;
   }
-  
+
   const keyData = resolved.key;
-  
+
+  // Removal path
+  if (args.quantity === 0) {
+    const existing = db.getAllocation(args.section, keyData.id);
+    if (!existing) {
+      return `❌ No allocation exists for section ${args.section} with key ${args.requestKey}.`;
+    }
+    const drops = db.getDropsBySectionAndKey(args.section, keyData.id);
+    const totalDropped = drops?.total_dropped || 0;
+    if (totalDropped > 0) {
+      return `❌ Cannot remove: section ${args.section} already has ${totalDropped} boxes dropped against ${args.requestKey}. Set a new target ≥ ${totalDropped} instead, or remove the section.`;
+    }
+    db.deleteAllocation(args.section, keyData.id);
+    db.addActivityLog(from, 'removealloc', args.requestKey, null, args.section);
+    const syncResult = await autoSync('setalloc');
+    return `✅ Removed allocation:\n*Key:* ${args.requestKey}\n*Section:* ${args.section}\n\n${formatSyncStatus(syncResult)}`;
+  }
+
   // Set allocation
   db.setAllocation(args.section, keyData.id, args.quantity);
   

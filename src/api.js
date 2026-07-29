@@ -16,7 +16,15 @@ function checkToken(req, res, next) {
 }
 router.use(checkToken);
 
-const WEB_USER = { from: 'web', name: 'Web UI' };
+// Web users identify themselves by name (stored in their browser, sent as a header).
+// Same trust model as WhatsApp — no accounts, just per-person attribution and undo.
+function webUser(req) {
+  const name = (req.headers['x-user-name'] || '').toString().trim().slice(0, 40);
+  return {
+    from: name ? `web:${name}` : 'web',
+    name: name ? `Web (${name})` : 'Web UI'
+  };
+}
 
 // Wrap a command handler so web actions behave exactly like WhatsApp commands
 // (same validation, logging, undo history, Sheets auto-sync).
@@ -26,7 +34,8 @@ function handle(handler, coerceQuantity = false) {
       if (coerceQuantity && req.body && req.body.quantity !== undefined) {
         req.body.quantity = Number(req.body.quantity);
       }
-      const text = await handler(req.body, WEB_USER.from, WEB_USER.name);
+      const user = webUser(req);
+      const text = await handler(req.body, user.from, user.name);
       // ❌ = error, ⚠️ = rejected with warning (e.g. over-allocation) — both non-ok
       const rejected = typeof text === 'string' && (text.startsWith('❌') || text.startsWith('⚠️'));
       res.status(rejected ? 400 : 200).json({ ok: !rejected, message: text });

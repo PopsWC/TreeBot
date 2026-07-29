@@ -279,27 +279,42 @@ function parseEditSectionArgs(argsStr) {
   return null;
 }
 
-// Resolve request key (full or short)
+// Resolve request key (full or short), case-insensitive fallbacks
 function resolveRequestKey(keyInput) {
   // First try exact match (full request key)
   let result = db.getRequestKey(keyInput);
   if (result) {
     return { resolved: true, key: result, ambiguous: false };
   }
-  
+
   // Try short key match
   const shortResults = db.getRequestKeyByShort(keyInput);
-  
-  if (shortResults.length === 0) {
-    return { resolved: false, key: null, ambiguous: false };
-  }
-  
+
   if (shortResults.length === 1) {
     return { resolved: true, key: shortResults[0], ambiguous: false };
   }
-  
-  // Multiple matches - ambiguous
-  return { resolved: false, key: null, ambiguous: true, matches: shortResults };
+  if (shortResults.length > 1) {
+    return { resolved: false, key: null, ambiguous: true, matches: shortResults };
+  }
+
+  // Case-insensitive fallbacks (crew typing GG-068 vs gg-068)
+  const ci = db.getRequestKeyCaseInsensitive(keyInput);
+  if (ci.length === 1) {
+    return { resolved: true, key: ci[0], ambiguous: false };
+  }
+  if (ci.length > 1) {
+    return { resolved: false, key: null, ambiguous: true, matches: ci };
+  }
+
+  const ciShort = db.getRequestKeyByShortCaseInsensitive(keyInput);
+  if (ciShort.length === 1) {
+    return { resolved: true, key: ciShort[0], ambiguous: false };
+  }
+  if (ciShort.length > 1) {
+    return { resolved: false, key: null, ambiguous: true, matches: ciShort };
+  }
+
+  return { resolved: false, key: null, ambiguous: false };
 }
 
 module.exports = {
