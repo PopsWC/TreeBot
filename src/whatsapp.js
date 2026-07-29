@@ -70,8 +70,13 @@ function generateTwiML(message) {
   return twiml.toString();
 }
 
+function generateEmptyTwiML() {
+  return new MessagingResponse().toString();
+}
+
 module.exports = {
   sendWhatsAppMessage,
   extractMessageData,
-  generateTwiML
+  generateTwiML,
+  generateEmptyTwiML
 };

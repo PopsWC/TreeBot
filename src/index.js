@@ -1,7 +1,8 @@
 require('dotenv').config();
 const express = require('express');
+const twilio = require('twilio');
 const { parseCommand } = require('./parser');
-const { extractMessageData, generateTwiML } = require('./whatsapp');
+const { extractMessageData, generateTwiML, generateEmptyTwiML } = require('./whatsapp');
 const commands = require('./commands');
 const sheets = require('./sheets');
 const sync = require('./sync');
@@ -16,10 +17,9 @@ app.use(express.urlencoded({ extended: false }));
 const processedMessages = new Map();
 const DEDUP_WINDOW_MS = 60000;
 
-// Rate limiting - track messages per user
+// Rate limiting - 1 command per 2 seconds per user
 const userRateLimits = new Map();
-const RATE_LIMIT_WINDOW_MS = 60000;
-const RATE_LIMIT_MAX = 30;
+const PER_USER_INTERVAL_MS = 2000;
 
 // Log all incoming requests for debugging
 app.use((req, res, next) => {
@@ -29,20 +29,18 @@ app.use((req, res, next) => {
 
 function checkRateLimit(phone) {
   const now = Date.now();
-  const userLimit = userRateLimits.get(phone);
-  if (!userLimit || now - userLimit.windowStart > RATE_LIMIT_WINDOW_MS) {
-    userRateLimits.set(phone, { count: 1, windowStart: now });
+  const lastMsg = userRateLimits.get(phone);
+  if (!lastMsg || (now - lastMsg) >= PER_USER_INTERVAL_MS) {
+    userRateLimits.set(phone, now);
     return true;
   }
-  if (userLimit.count >= RATE_LIMIT_MAX) return false;
-  userLimit.count++;
-  return true;
+  return false;
 }
 
 function cleanRateLimits() {
   const now = Date.now();
-  for (const [phone, limit] of userRateLimits) {
-    if (now - limit.windowStart > RATE_LIMIT_WINDOW_MS * 2) {
+  for (const [phone, time] of userRateLimits) {
+    if (now - time > PER_USER_INTERVAL_MS * 50) {
       userRateLimits.delete(phone);
     }
   }
@@ -58,14 +56,14 @@ function cleanProcessedMessages() {
 }
 
 // WhatsApp webhook (Twilio)
-// Twilio expects TwiML in the response body to send a WhatsApp message.
-// Empty TwiML (<Message></Message>) = no message sent.
-app.post('/whatsapp', async (req, res) => {
+// Twilio webhook middleware validates the X-Twilio-Signature header
+// Only validates in production (Railway) to allow local testing
+app.post('/whatsapp', twilio.webhook({ validate: process.env.NODE_ENV === 'production' }), async (req, res) => {
   console.log('--- Webhook received ---');
 
   if (!req.body) {
     console.error('ERROR: req.body is undefined/null');
-    res.type('text/xml').send(generateTwiML(''));
+    res.type('text/xml').send(generateEmptyTwiML());
     return;
   }
 
@@ -77,7 +75,7 @@ app.post('/whatsapp', async (req, res) => {
   if (messageSid) {
     if (processedMessages.has(messageSid)) {
       console.log(`Duplicate message ${messageSid}, ignoring`);
-      res.type('text/xml').send(generateTwiML(''));
+      res.type('text/xml').send(generateEmptyTwiML());
       return;
     }
     processedMessages.set(messageSid, Date.now());
@@ -88,25 +86,27 @@ app.post('/whatsapp', async (req, res) => {
 
   if (!messageData || !messageData.text) {
     console.log('No message data or text');
-    res.type('text/xml').send(generateTwiML(''));
+    res.type('text/xml').send(generateEmptyTwiML());
     return;
   }
 
   console.log(`Message from ${messageData.contactName} (${messageData.from}): ${messageData.text}`);
 
-  // Rate limiting
+  // Rate limiting - 1 command per 2 seconds per user
   if (!checkRateLimit(messageData.from)) {
-    console.log(`Rate limit exceeded for ${messageData.from}`);
-    if (userRateLimits.size > 100) cleanRateLimits();
-    res.type('text/xml').send(generateTwiML(''));
+    console.log(`Rate limit hit for ${messageData.from}`);
+    res.type('text/xml').send(generateEmptyTwiML());
     return;
   }
   if (userRateLimits.size > 100) cleanRateLimits();
 
-  // Ignore non-command messages (empty TwiML = no message sent)
+  // Non-command messages: reply helpfully
   if (!messageData.text.startsWith('/')) {
-    console.log('Not a command, ignoring');
-    res.type('text/xml').send(generateTwiML(''));
+    console.log('Not a command, sending helpful reply');
+    res.type('text/xml').send(generateTwiML(
+      '👋 I only respond to commands starting with /\n' +
+      'Type /help to see what I can do.'
+    ));
     return;
   }
 
@@ -175,6 +175,7 @@ async function startServer() {
   console.log('Twilio Account SID:', process.env.TWILIO_ACCOUNT_SID ? 'configured' : 'MISSING');
   console.log('Twilio Auth Token:', process.env.TWILIO_AUTH_TOKEN ? 'configured' : 'MISSING');
   console.log('Twilio WhatsApp Number:', process.env.TWILIO_WHATSAPP_NUMBER || 'MISSING');
+  console.log('Webhook validation:', process.env.NODE_ENV === 'production' ? 'ENABLED' : 'DISABLED (dev mode)');
 
   console.log('\n--- Initializing Google Sheets ---');
   const sheetsReady = await sheets.initializeSheets();
