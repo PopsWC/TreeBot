@@ -12,6 +12,22 @@ A WhatsApp bot for tracking tree planting box drops and allocations. Designed fo
 - **Google Sheets Sync** - Auto-sync data to spreadsheet
 - **Activity Logging** - Full audit trail of all actions
 - **Web UI** - Button-driven web interface (no typing commands)
+- **Telegram Bot** - Full command parity with WhatsApp, including Confirm/Cancel buttons
+
+## Telegram
+
+The same commands available on WhatsApp also work on Telegram. The bot uses long polling (no webhook setup needed) and starts automatically when `TELEGRAM_BOT_TOKEN` is set.
+
+- Same syntax as WhatsApp: `/drop 10 068 6`, `/setalloc 200 068 6`, etc.
+- Works in DMs and groups (`/drop@YourBot 10 068 6` also handled)
+- `/removesection` and `/import` show **Confirm/Cancel buttons** instead of requiring a typed `confirm`
+- Actions are attributed per Telegram user — undo affects only your own actions
+
+### Setup
+
+1. Message [@BotFather](https://t.me/BotFather) → `/newbot` → copy the token
+2. Set `TELEGRAM_BOT_TOKEN` in Railway (or `.env` locally)
+3. Optionally disable privacy mode in BotFather (`/setprivacy` → Disable) if you want the bot in group chats
 
 ## Web UI
 

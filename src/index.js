@@ -197,7 +197,10 @@ async function startServer() {
   } else {
     console.log('⚠️ Google Sheets not available (check .env configuration)');
   }
-  
+
+  // Start Telegram bot (no-op if TELEGRAM_BOT_TOKEN not set)
+  await require('./telegram').startBot();
+
   app.listen(PORT, () => {
     console.log(`\n=== Server running on port ${PORT} ===`);
     console.log('Webhook URL: /whatsapp');
