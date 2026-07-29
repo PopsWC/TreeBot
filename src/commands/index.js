@@ -41,7 +41,7 @@ async function help(args, from, contactName) {
 /math [box size] [decimal] - Calculate saplings
 /undo - Undo your last action
 /logs [user] - View activity log
-`;
+${process.env.WEB_UI_URL ? `\n🌐 *Web UI:* ${process.env.WEB_UI_URL}\nTap buttons instead of typing commands!` : ''}`;
 }
 
 // /addkey

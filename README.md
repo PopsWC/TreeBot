@@ -11,6 +11,29 @@ A WhatsApp bot for tracking tree planting box drops and allocations. Designed fo
 - **Undo Support** - Undo last 5 actions (per user)
 - **Google Sheets Sync** - Auto-sync data to spreadsheet
 - **Activity Logging** - Full audit trail of all actions
+- **Web UI** - Button-driven web interface (no typing commands)
+
+## Web UI
+
+The bot serves a mobile-friendly web interface at `/` (the root URL of your deployment). Everything is buttons, dropdowns, and steppers — no command typing:
+
+- **Home** - inventory totals + per-section progress bars
+- **Drop** - pick section → key → quantity, log the drop
+- **Stock** - inventory table + add stock
+- **Alloc** - set per-section targets
+- **Keys** - manage request keys
+- **Sections** - add/edit/delete sections (with confirm dialog)
+- **Activity** - audit log + undo button
+- **Sheets** - connection status, sync now, import preview/apply
+
+Web actions go through the same logic as WhatsApp commands — undo history, activity logs, and Sheets auto-sync work identically.
+
+### Environment variables
+
+| Variable | Purpose |
+|----------|---------|
+| `WEB_UI_URL` | Public URL of the deployment (e.g. `https://treebot.up.railway.app`). When set, `/help` in WhatsApp replies with the web link. |
+| `WEB_UI_TOKEN` | Optional. If set, the web UI requires this bearer token (entered once in the browser) before any data loads. Recommended on public deployments. |
 
 ## Commands
 

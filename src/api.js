@@ -6,6 +6,16 @@ const commands = require('./commands');
 
 const router = express.Router();
 
+// Optional bearer-token protection for the web UI (set WEB_UI_TOKEN on Railway)
+const WEB_UI_TOKEN = process.env.WEB_UI_TOKEN;
+function checkToken(req, res, next) {
+  if (!WEB_UI_TOKEN) return next();
+  const header = req.headers.authorization || '';
+  if (header === `Bearer ${WEB_UI_TOKEN}`) return next();
+  res.status(401).json({ ok: false, message: 'Unauthorized' });
+}
+router.use(checkToken);
+
 const WEB_USER = { from: 'web', name: 'Web UI' };
 
 // Wrap a command handler so web actions behave exactly like WhatsApp commands
