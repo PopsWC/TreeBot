@@ -280,7 +280,7 @@ const dbHelpers = {
 
   getLastUserActions(userPhone, limit = 5) {
     return db.prepare(
-      'SELECT * FROM action_history WHERE user_phone = ? ORDER BY created_at DESC LIMIT ?'
+      'SELECT * FROM action_history WHERE user_phone = ? ORDER BY created_at DESC, id DESC LIMIT ?'
     ).all(userPhone, limit);
   },
 

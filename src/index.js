@@ -12,6 +12,10 @@ const PORT = process.env.PORT || 3000;
 
 // Twilio sends form-encoded data
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(express.static('public'));
+const api = require('./api');
+app.use('/api', api);
 
 // Deduplication - track processed message SIDs
 const processedMessages = new Map();
@@ -139,7 +143,7 @@ app.post('/whatsapp', twilio.webhook({ validate: process.env.NODE_ENV === 'produ
 });
 
 // Health check
-app.get('/', (req, res) => {
+app.get('/healthz', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
@@ -190,6 +194,7 @@ async function startServer() {
     console.log(`\n=== Server running on port ${PORT} ===`);
     console.log('Webhook URL: /whatsapp');
     console.log('Status URL: /status');
+    console.log('Web UI: /');
     console.log('Google Sheets:', sheetsReady ? 'CONNECTED' : 'DISCONNECTED');
     console.log('================================\n');
   });
