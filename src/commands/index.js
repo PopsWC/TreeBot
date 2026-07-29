@@ -427,9 +427,7 @@ async function undo(args, from, contactName) {
     }
     
     // Remove from drop history
-    const drops = db.prepare(
-      'SELECT id FROM drop_history WHERE section = ? AND request_key_id = ? AND dropped_by = ? ORDER BY created_at DESC LIMIT 1'
-    ).get(actionData.section, actionData.requestKeyId, from);
+    const drops = db.getLatestDrop(actionData.section, actionData.requestKeyId, from);
     
     if (drops) {
       db.removeDrop(drops.id);

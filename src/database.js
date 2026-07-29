@@ -158,7 +158,7 @@ const dbHelpers = {
     const existing = db.prepare('SELECT * FROM main_inventory WHERE request_key_id = ?').get(requestKeyId);
     
     if (existing) {
-      db.prepare('UPDATE main_inventory SET quantity = ?, updated_at = datetime("now") WHERE request_key_id = ?')
+      db.prepare("UPDATE main_inventory SET quantity = ?, updated_at = datetime('now') WHERE request_key_id = ?")
         .run(quantity, requestKeyId);
     } else {
       db.prepare('INSERT INTO main_inventory (request_key_id, quantity) VALUES (?, ?)')
@@ -250,6 +250,12 @@ const dbHelpers = {
 
   removeDrop(dropId) {
     return db.prepare('DELETE FROM drop_history WHERE id = ?').run(dropId);
+  },
+
+  getLatestDrop(section, requestKeyId, droppedBy) {
+    return db.prepare(
+      'SELECT id FROM drop_history WHERE section = ? AND request_key_id = ? AND dropped_by = ? ORDER BY created_at DESC LIMIT 1'
+    ).get(section, requestKeyId, droppedBy);
   },
 
   getLastDrops(userPhone, limit = 5) {
@@ -407,7 +413,7 @@ const dbHelpers = {
     const existing = db.prepare('SELECT * FROM main_inventory WHERE request_key_id = ?').get(key.id);
     
     if (existing) {
-      db.prepare('UPDATE main_inventory SET quantity = ?, updated_at = datetime("now") WHERE request_key_id = ?')
+      db.prepare("UPDATE main_inventory SET quantity = ?, updated_at = datetime('now') WHERE request_key_id = ?")
         .run(quantity, key.id);
       return { success: true, action: 'updated', requestKey };
     } else {

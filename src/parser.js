@@ -82,8 +82,8 @@ function parseCommand(message) {
       break;
       
     case 'removesection':
-      // /removesection 6
-      args = { section: argsStr || null };
+      // /removesection 6  OR  /removesection 6 confirm
+      args = parseRemoveSectionArgs(argsStr);
       break;
       
     case 'listsections':
@@ -107,6 +107,11 @@ function parseCommand(message) {
     case 'import':
       // /import  OR  /import inventory  OR  /import confirm
       args = { _: argsStr ? argsStr.split(/\s+/) : [] };
+      break;
+
+    case 'sheets':
+      // /sheets  OR  /sheets test
+      args = { test: /^test$/i.test(argsStr) };
       break;
       
     default:
@@ -249,6 +254,16 @@ function parseAddSectionArgs(argsStr) {
   }
   // Just section ID
   return { section: argsStr || null, description: null };
+}
+
+function parseRemoveSectionArgs(argsStr) {
+  // /removesection 6  OR  /removesection 6 confirm
+  const match = argsStr.match(/^(\S+)(?:\s+(confirm))?$/i);
+  if (!match) return { section: null, confirmed: false };
+  return {
+    section: match[1],
+    confirmed: !!match[2]
+  };
 }
 
 function parseEditSectionArgs(argsStr) {

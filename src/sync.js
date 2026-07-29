@@ -444,13 +444,14 @@ async function executeSyncAction(actionType, synced, errors) {
 // Auto-sync specific tabs after actions (called from command handlers)
 async function autoSync(actionType) {
   if (!sheets.isAvailable()) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       message: 'Google Sheets not connected',
-      synced: [] 
+      synced: [],
+      errors: ['Not connected']
     };
   }
-  
+
   const synced = [];
   const errors = [];
   
@@ -510,8 +511,10 @@ function formatSyncStatus(syncResult) {
   if (syncResult.success) {
     return `📊 Sync: ✅ ${syncResult.synced.join(', ')}`;
   } else {
-    const syncedStr = syncResult.synced.length > 0 ? `✅ ${syncResult.synced.join(', ')}` : '';
-    const failed = syncResult.errors.length > 0 ? `❌ ${syncResult.errors.join(', ')}` : '';
+    const synced = syncResult.synced || [];
+    const errs = syncResult.errors || [];
+    const syncedStr = synced.length > 0 ? `✅ ${synced.join(', ')}` : '';
+    const failed = errs.length > 0 ? `❌ ${errs.join(', ')}` : (syncResult.message ? `❌ ${syncResult.message}` : '');
     return `📊 Sync: ${[syncedStr, failed].filter(Boolean).join(' | ')}`;
   }
 }
