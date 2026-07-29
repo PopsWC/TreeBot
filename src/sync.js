@@ -454,34 +454,34 @@ async function autoSync(actionType) {
 
   const synced = [];
   const errors = [];
-  
+  let completed = false;
+
   try {
-    // Add timeout protection to prevent webhook issues
-    await withTimeout(executeSyncAction(actionType, synced, errors), SYNC_TIMEOUT_MS);
-    
+    // Add timeout protection to prevent webhook issues.
+    // Track completion: on timeout the in-flight sync finishes in the background
+    // (each tab replace is idempotent + snapshot-protected) — do NOT start a second one.
+    const work = executeSyncAction(actionType, synced, errors).then(() => { completed = true; });
+    await withTimeout(work, SYNC_TIMEOUT_MS);
+
     return {
       success: errors.length === 0,
-      message: errors.length === 0 
+      message: errors.length === 0
         ? `Synced: ${synced.join(', ')}`
         : `Synced: ${synced.join(', ')}${errors.length > 0 ? `\nFailed: ${errors.join(', ')}` : ''}`,
       synced,
       errors
     };
   } catch (error) {
-    if (error.message === 'Operation timed out') {
-      console.log('Sync timed out, continuing asynchronously');
-      // Fire and forget - don't block response
-      executeSyncAction(actionType, [], []).catch(err => 
-        console.error('Background sync error:', err)
-      );
-      return { 
-        success: true, 
-        message: 'Sync started (async)', 
-        synced: [], 
-        errors: [] 
+    if (error.message === 'Operation timed out' && !completed) {
+      console.log('Sync timed out — in-flight sync continues in background');
+      return {
+        success: false,
+        message: 'Sync timed out (still running in background)',
+        synced,
+        errors: ['Timed out']
       };
     }
-    
+
     console.error('Auto-sync error:', error);
     return {
       success: false,
@@ -846,7 +846,9 @@ async function generateImportPreview(tabs = IMPORT_TABS) {
   return preview;
 }
 
-// Apply import to database (transactional)
+// Apply import to database — truly transactional: all DB writes commit together
+// or roll back together. Sheets reads happen first (network, outside transaction);
+// any failed tab read aborts the import before any write occurs.
 async function applyImport(preview) {
   const results = {
     inventory: { inserted: 0, updated: 0, skipped: 0, errors: [] },
@@ -854,80 +856,81 @@ async function applyImport(preview) {
     requestKeys: { inserted: 0, updated: 0, skipped: 0, errors: [] },
     sections: { inserted: 0, updated: 0, skipped: 0, errors: [] }
   };
-  
-  // Import request keys first (dependencies)
-  if (preview.requestKeys) {
-    // Re-parse to get fresh data
-    const result = await sheets.readTabData('Request Keys');
-    if (result.success) {
-      const { parsed } = parseRequestKeysRows(result.data);
-      for (const item of parsed) {
-        const upsertResult = db.upsertRequestKey(item.requestKey, item.shortKey, item.species, item.notes);
-        if (upsertResult.success) {
-          if (upsertResult.action === 'inserted') results.requestKeys.inserted++;
+
+  // Phase 1: read + parse all tabs (network I/O — must stay outside the DB transaction)
+  const staged = {};
+  const tabMap = [
+    ['requestKeys', 'Request Keys', parseRequestKeysRows],
+    ['sections', 'Sections', parseSectionsRows],
+    ['inventory', 'Inventory', parseInventoryRows],
+    ['allocations', 'Allocations', parseAllocationsRows]
+  ];
+
+  for (const [key, tabName, parserFn] of tabMap) {
+    if (!preview[key]) continue;
+    const result = await sheets.readTabData(tabName);
+    if (!result.success) {
+      results[key].errors.push(`Failed to read ${tabName}: ${result.error || 'unknown error'} — import aborted, no changes made`);
+      return results;
+    }
+    staged[key] = parserFn(result.data).parsed;
+  }
+
+  // Phase 2: apply all writes in a single transaction (rolls back on any error)
+  db.transaction(() => {
+    if (staged.requestKeys) {
+      for (const item of staged.requestKeys) {
+        const r = db.upsertRequestKey(item.requestKey, item.shortKey, item.species, item.notes);
+        if (r.success) {
+          if (r.action === 'inserted') results.requestKeys.inserted++;
           else results.requestKeys.updated++;
         } else {
           results.requestKeys.skipped++;
-          results.requestKeys.errors.push(upsertResult.error);
+          results.requestKeys.errors.push(r.error);
         }
       }
     }
-  }
-  
-  // Import sections
-  if (preview.sections) {
-    const result = await sheets.readTabData('Sections');
-    if (result.success) {
-      const { parsed } = parseSectionsRows(result.data);
-      for (const item of parsed) {
-        const upsertResult = db.upsertSection(item.sectionId, item.description);
-        if (upsertResult.success) {
-          if (upsertResult.action === 'inserted') results.sections.inserted++;
+
+    if (staged.sections) {
+      for (const item of staged.sections) {
+        const r = db.upsertSection(item.sectionId, item.description);
+        if (r.success) {
+          if (r.action === 'inserted') results.sections.inserted++;
           else results.sections.updated++;
         } else {
           results.sections.skipped++;
-          results.sections.errors.push(upsertResult.error);
+          results.sections.errors.push(r.error);
         }
       }
     }
-  }
-  
-  // Import inventory
-  if (preview.inventory) {
-    const result = await sheets.readTabData('Inventory');
-    if (result.success) {
-      const { parsed } = parseInventoryRows(result.data);
-      for (const item of parsed) {
-        const upsertResult = db.upsertInventory(item.requestKey, item.quantity);
-        if (upsertResult.success) {
-          if (upsertResult.action === 'inserted') results.inventory.inserted++;
+
+    if (staged.inventory) {
+      for (const item of staged.inventory) {
+        const r = db.upsertInventory(item.requestKey, item.quantity);
+        if (r.success) {
+          if (r.action === 'inserted') results.inventory.inserted++;
           else results.inventory.updated++;
         } else {
           results.inventory.skipped++;
-          results.inventory.errors.push(upsertResult.error);
+          results.inventory.errors.push(r.error);
         }
       }
     }
-  }
-  
-  // Import allocations
-  if (preview.allocations) {
-    const result = await sheets.readTabData('Allocations');
-    if (result.success) {
-      const { parsed } = parseAllocationsRows(result.data);
-      for (const item of parsed) {
-        const upsertResult = db.upsertAllocation(item.section, item.requestKey, item.targetQuantity);
-        if (upsertResult.success) {
-          if (upsertResult.action === 'inserted') results.allocations.inserted++;
+
+    if (staged.allocations) {
+      for (const item of staged.allocations) {
+        const r = db.upsertAllocation(item.section, item.requestKey, item.targetQuantity);
+        if (r.success) {
+          if (r.action === 'inserted') results.allocations.inserted++;
           else results.allocations.updated++;
         } else {
           results.allocations.skipped++;
-          results.allocations.errors.push(upsertResult.error);
+          results.allocations.errors.push(r.error);
         }
       }
     }
-  }
-  
+  })();
+
   return results;
 }
 

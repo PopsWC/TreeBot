@@ -238,25 +238,79 @@ async function appendRows(tabName, rows) {
   return false;
 }
 
-// Replace all data in a tab (clear + append)
+// Replace all data in a tab (clear + append).
+// Safety: snapshot existing rows first; if the append fails after clearing,
+// attempt to restore the snapshot so a failed sync never leaves the tab empty.
 async function replaceTabData(tabName, rows) {
   if (!sheets) {
     return { success: false, error: 'Sheets not initialized' };
   }
-  
+
+  // Snapshot current contents for rollback
+  let snapshot = null;
+  try {
+    const backup = await readTabDataRaw(tabName);
+    snapshot = backup;
+  } catch (e) {
+    console.log(`Snapshot of ${tabName} failed (${e.message}) — aborting replace to avoid data loss`);
+    return { success: false, error: `Could not snapshot tab ${tabName} before replace` };
+  }
+
   const cleared = await clearTab(tabName);
   if (!cleared) {
     return { success: false, error: `Failed to clear tab ${tabName}` };
   }
-  
+
   if (rows && rows.length > 0) {
     const appended = await appendRows(tabName, rows);
     if (!appended) {
+      // Best-effort restore of the snapshot
+      console.error(`Append to ${tabName} failed after clear — restoring ${snapshot ? snapshot.length : 0} snapshot rows`);
+      if (snapshot && snapshot.length > 0) {
+        const restored = await appendRowsRaw(tabName, snapshot);
+        if (restored) {
+          console.log(`✅ Restored snapshot of ${tabName}`);
+          return { success: false, error: `Append failed; previous data restored in ${tabName}` };
+        }
+        console.error(`❌ CRITICAL: snapshot restore FAILED for ${tabName} — tab may be empty`);
+        return { success: false, error: `CRITICAL: append failed and restore failed for ${tabName}` };
+      }
       return { success: false, error: `Failed to append to tab ${tabName}` };
     }
   }
-  
+
   return { success: true, rows: rows ? rows.length : 0 };
+}
+
+// Raw read including header row (for snapshot/restore)
+async function readTabDataRaw(tabName) {
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${tabName}!A:Z`,
+  });
+  return response.data.values || [];
+}
+
+// Append raw 2D-array rows (no header processing)
+async function appendRowsRaw(tabName, values) {
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      await sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: `${tabName}!A:Z`,
+        valueInputOption: 'RAW',
+        insertDataOption: 'INSERT_ROWS',
+        requestBody: { values },
+      });
+      return true;
+    } catch (error) {
+      console.log(`Raw restore append to ${tabName} attempt ${attempt}/${MAX_RETRIES} failed: ${error.message}`);
+      if (attempt < MAX_RETRIES) {
+        await sleep(RETRY_DELAY_MS * attempt);
+      }
+    }
+  }
+  return false;
 }
 
 // Get row count for a tab
