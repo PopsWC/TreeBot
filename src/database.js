@@ -12,6 +12,8 @@ const db = new Database(dbPath);
 
 // Enable WAL mode for better concurrent access
 db.pragma('journal_mode = WAL');
+// Enforce foreign keys (SQLite defaults to OFF)
+db.pragma('foreign_keys = ON');
 
 // Create tables
 db.exec(`
@@ -88,8 +90,20 @@ db.exec(`
   );
 `);
 
+// Validate a quantity destined for main_inventory (no negatives, no NaN/floats)
+function assertValidQuantity(quantity) {
+  if (!Number.isInteger(quantity) || quantity < 0) {
+    throw new Error(`Invalid inventory quantity: ${quantity}`);
+  }
+}
+
 // Database helper functions
 const dbHelpers = {
+  // Run multiple writes atomically — rolls back all on any error
+  transaction(fn) {
+    return db.transaction(fn);
+  },
+
   // Species operations
   getSpecies(name) {
     return db.prepare('SELECT * FROM species WHERE name = ?').get(name);
@@ -155,6 +169,7 @@ const dbHelpers = {
   },
 
   updateInventory(requestKeyId, quantity) {
+    assertValidQuantity(quantity);
     const existing = db.prepare('SELECT * FROM main_inventory WHERE request_key_id = ?').get(requestKeyId);
     
     if (existing) {
@@ -235,7 +250,7 @@ const dbHelpers = {
 
   getDropsBySectionAndKey(section, requestKeyId) {
     return db.prepare(`
-      SELECT SUM(quantity) as total_dropped
+      SELECT COALESCE(SUM(quantity), 0) as total_dropped
       FROM drop_history
       WHERE section = ? AND request_key_id = ?
     `).get(section, requestKeyId);
@@ -248,13 +263,45 @@ const dbHelpers = {
     return result.lastInsertRowid;
   },
 
+  // Atomic drop: drop record + inventory decrement + activity log + undo history.
+  // All four writes commit together or roll back together. Returns the new drop id.
+  performDrop({ section, requestKeyId, requestKey, quantity, newInventoryQty, from }) {
+    const run = db.transaction(() => {
+      const dropId = db.prepare(
+        'INSERT INTO drop_history (section, request_key_id, quantity, dropped_by) VALUES (?, ?, ?, ?)'
+      ).run(section, requestKeyId, quantity, from).lastInsertRowid;
+
+      assertValidQuantity(newInventoryQty);
+      db.prepare("UPDATE main_inventory SET quantity = ?, updated_at = datetime('now') WHERE request_key_id = ?")
+        .run(newInventoryQty, requestKeyId);
+
+      db.prepare(
+        'INSERT INTO activity_logs (user_phone, action, request_key, quantity, section, target_section) VALUES (?, ?, ?, ?, ?, ?)'
+      ).run(from, 'drop', requestKey, quantity, section, null);
+
+      db.prepare(
+        'INSERT INTO action_history (user_phone, action_type, action_data) VALUES (?, ?, ?)'
+      ).run(from, 'drop', JSON.stringify({
+        dropId,
+        requestKeyId,
+        requestKey,
+        section,
+        quantity,
+        newInventory: newInventoryQty
+      }));
+
+      return dropId;
+    });
+    return run();
+  },
+
   removeDrop(dropId) {
     return db.prepare('DELETE FROM drop_history WHERE id = ?').run(dropId);
   },
 
   getLatestDrop(section, requestKeyId, droppedBy) {
     return db.prepare(
-      'SELECT id FROM drop_history WHERE section = ? AND request_key_id = ? AND dropped_by = ? ORDER BY created_at DESC LIMIT 1'
+      'SELECT id FROM drop_history WHERE section = ? AND request_key_id = ? AND dropped_by = ? ORDER BY created_at DESC, id DESC LIMIT 1'
     ).get(section, requestKeyId, droppedBy);
   },
 
@@ -268,6 +315,30 @@ const dbHelpers = {
       ORDER BY dh.created_at DESC
       LIMIT ?
     `).all(userPhone, limit);
+  },
+
+  // Atomic stock addition: inventory + activity log + undo history together
+  performAddStock({ requestKeyId, requestKey, quantityAdded, newQuantity, from }) {
+    const run = db.transaction(() => {
+      assertValidQuantity(newQuantity);
+      const existing = db.prepare('SELECT * FROM main_inventory WHERE request_key_id = ?').get(requestKeyId);
+      if (existing) {
+        db.prepare("UPDATE main_inventory SET quantity = ?, updated_at = datetime('now') WHERE request_key_id = ?")
+          .run(newQuantity, requestKeyId);
+      } else {
+        db.prepare('INSERT INTO main_inventory (request_key_id, quantity) VALUES (?, ?)')
+          .run(requestKeyId, newQuantity);
+      }
+      db.prepare(
+        'INSERT INTO activity_logs (user_phone, action, request_key, quantity, section, target_section) VALUES (?, ?, ?, ?, ?, ?)'
+      ).run(from, 'addstock', requestKey, quantityAdded, null, null);
+      db.prepare(
+        'INSERT INTO action_history (user_phone, action_type, action_data) VALUES (?, ?, ?)'
+      ).run(from, 'addstock', JSON.stringify({
+        requestKeyId, requestKey, quantityAdded, newQuantity
+      }));
+    });
+    return run();
   },
 
   // Action history for undo
@@ -297,13 +368,13 @@ const dbHelpers = {
 
   getRecentLogs(limit = 10) {
     return db.prepare(
-      'SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT ?'
+      'SELECT * FROM activity_logs ORDER BY created_at DESC, id DESC LIMIT ?'
     ).all(limit);
   },
 
   getUserLogs(userPhone, limit = 10) {
     return db.prepare(
-      'SELECT * FROM activity_logs WHERE user_phone = ? ORDER BY created_at DESC LIMIT ?'
+      'SELECT * FROM activity_logs WHERE user_phone = ? ORDER BY created_at DESC, id DESC LIMIT ?'
     ).all(userPhone, limit);
   },
 
@@ -326,10 +397,13 @@ const dbHelpers = {
   },
 
   deleteSection(sectionId) {
-    // Delete related records first
-    db.prepare('DELETE FROM drop_history WHERE section = ?').run(sectionId);
-    db.prepare('DELETE FROM section_allocations WHERE section = ?').run(sectionId);
-    return db.prepare('DELETE FROM sections WHERE id = ?').run(sectionId);
+    // Delete related records first — atomic, rolls back on any failure
+    const run = db.transaction((id) => {
+      db.prepare('DELETE FROM drop_history WHERE section = ?').run(id);
+      db.prepare('DELETE FROM section_allocations WHERE section = ?').run(id);
+      db.prepare('DELETE FROM sections WHERE id = ?').run(id);
+    });
+    return run(sectionId);
   },
 
   getAllSections() {
@@ -405,6 +479,9 @@ const dbHelpers = {
 
   // Upsert functions for import
   upsertInventory(requestKey, quantity) {
+    if (!Number.isInteger(quantity) || quantity < 0) {
+      return { success: false, action: 'skipped', error: `Invalid quantity "${quantity}" for ${requestKey}` };
+    }
     const key = db.prepare('SELECT id FROM request_keys WHERE request_key = ?').get(requestKey);
     if (!key) {
       return { success: false, action: 'skipped', error: `Request key "${requestKey}" not found` };

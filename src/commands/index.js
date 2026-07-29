@@ -106,17 +106,14 @@ async function addstock(args, from, contactName) {
   // Get or create inventory record
   const currentInventory = db.getInventory(keyData.id);
   const newQuantity = (currentInventory?.quantity || 0) + args.quantity;
-  
-  db.updateInventory(keyData.id, newQuantity);
-  
-  // Log the action
-  db.addActivityLog(from, 'addstock', args.requestKey, args.quantity, null);
-  db.addActionHistory(from, 'addstock', {
+
+  // Atomic: inventory + logs + undo history
+  db.performAddStock({
     requestKeyId: keyData.id,
     requestKey: args.requestKey,
     quantityAdded: args.quantity,
-    previousQuantity: currentInventory?.quantity || 0,
-    newQuantity: newQuantity
+    newQuantity,
+    from
   });
   
   // Auto-sync to sheets
@@ -181,19 +178,14 @@ async function drop(args, from, contactName) {
     return `⚠️ Drop of ${args.quantity} exceeds remaining allocation of ${remaining} for section ${args.section}`;
   }
   
-  // Perform the drop
-  db.addDrop(args.section, keyData.id, args.quantity, from);
-  db.updateInventory(keyData.id, inventory.quantity - args.quantity);
-  
-  // Log the action
-  db.addActivityLog(from, 'drop', args.requestKey, args.quantity, args.section);
-  db.addActionHistory(from, 'drop', {
+  // Perform the drop atomically (drop record + inventory + logs + undo history)
+  db.performDrop({
+    section: args.section,
     requestKeyId: keyData.id,
     requestKey: args.requestKey,
-    section: args.section,
     quantity: args.quantity,
-    previousInventory: inventory.quantity,
-    newInventory: inventory.quantity - args.quantity
+    newInventoryQty: inventory.quantity - args.quantity,
+    from
   });
   
   // Auto-sync to sheets
@@ -410,58 +402,62 @@ async function remaining(args, from, contactName) {
 // /undo
 async function undo(args, from, contactName) {
   const userActions = db.getLastUserActions(from, 5);
-  
+
   if (userActions.length === 0) {
     return '❌ No recent actions to undo';
   }
-  
+
   const lastAction = userActions[0];
   const actionData = JSON.parse(lastAction.action_data);
-  
+
   // Reverse the action based on type
   if (lastAction.action_type === 'drop') {
-    // Find and remove the drop
-    const inventory = db.getInventory(actionData.requestKeyId);
-    if (inventory) {
-      db.updateInventory(actionData.requestKeyId, inventory.quantity + actionData.quantity);
-    }
-    
-    // Remove from drop history
-    const drops = db.getLatestDrop(actionData.section, actionData.requestKeyId, from);
-    
-    if (drops) {
-      db.removeDrop(drops.id);
-    }
-    
-    // Delete the action history
-    db.deleteActionHistory(lastAction.id);
-    
-    return `↩️ Undid your drop:
-*Key:* ${actionData.requestKey}
-*Section:* ${actionData.section}
-*Quantity:* ${actionData.quantity}
-*New Inventory:* ${inventory.quantity + actionData.quantity}`;
+    // Atomic undo: restore inventory + delete exact drop + delete history row
+    const result = db.transaction(() => {
+      const inventory = db.getInventory(actionData.requestKeyId);
+      const restoredQty = (inventory?.quantity || 0) + actionData.quantity;
+      db.updateInventory(actionData.requestKeyId, restoredQty);
+
+      // Delete the exact drop row if we have its id; legacy rows fall back to latest-match
+      if (actionData.dropId) {
+        db.removeDrop(actionData.dropId);
+      } else {
+        const drop = db.getLatestDrop(actionData.section, actionData.requestKeyId, from);
+        if (drop) db.removeDrop(drop.id);
+      }
+
+      db.deleteActionHistory(lastAction.id);
+      return restoredQty;
+    })();
+
+    return `↩️ Undid your drop:\n*Key:* ${actionData.requestKey}\n*Section:* ${actionData.section}\n*Quantity:* ${actionData.quantity}\n*New Inventory:* ${result}`;
   }
-  
+
   if (lastAction.action_type === 'addstock') {
-    // Reverse the stock addition
-    const inventory = db.getInventory(actionData.requestKeyId);
-    if (inventory) {
-      const newQty = inventory.quantity - actionData.quantityAdded;
+    // Atomic undo of stock addition
+    const result = db.transaction(() => {
+      const inventory = db.getInventory(actionData.requestKeyId);
+      const newQty = (inventory?.quantity || 0) - actionData.quantityAdded;
       if (newQty < 0) {
-        return '❌ Cannot undo: would result in negative inventory';
+        return { error: '❌ Cannot undo: would result in negative inventory' };
       }
       db.updateInventory(actionData.requestKeyId, newQty);
-    }
-    
-    db.deleteActionHistory(lastAction.id);
-    
-    return `↩️ Undid your stock addition:
-*Key:* ${actionData.requestKey}
-*Quantity:* ${actionData.quantityAdded}
-*New Inventory:* ${(inventory?.quantity || 0) - actionData.quantityAdded}`;
+      db.deleteActionHistory(lastAction.id);
+      return { newQty };
+    })();
+
+    if (result.error) return result.error;
+
+    return `↩️ Undid your stock addition:\n*Key:* ${actionData.requestKey}\n*Quantity:* ${actionData.quantityAdded}\n*New Inventory:* ${result.newQty}`;
   }
-  
+
+  // Skip non-undoable action types so the user can reach older undoable actions
+  const nextUndoable = userActions.find(a => a.action_type === 'drop' || a.action_type === 'addstock');
+  if (nextUndoable && nextUndoable.id !== lastAction.id) {
+    db.deleteActionHistory(lastAction.id);
+    return `⏭️ Skipped "${lastAction.action_type}" (can't be undone). Run /undo again to undo your last drop or stock addition.`;
+  }
+
   return '❌ Cannot undo this action type';
 }
 
