@@ -136,18 +136,28 @@ ${formatSyncStatus(syncResult)}`;
 }
 
 // /drop
+// /drop  — /drop 10 068 6            (10 whole boxes)
+//          /drop 10 068 6 +60       (10 boxes + 60 loose stems)
+//          /drop 0 068 6 +60        (partial box only: 60 stems)
 async function drop(args, from, contactName) {
-  if (!args || !args.quantity || !args.requestKey || !args.section) {
-    return '❌ Usage: /drop [quantity] [request_key] [section]\nExample: /drop 10 068 6';
+  if (!args || args.quantity === undefined || args.quantity === null || !args.requestKey || !args.section) {
+    return '❌ Usage: /drop [boxes] [request_key] [section] [+partial_stems]\nExample: /drop 10 068 6  or  /drop 10 068 6 +60';
   }
-  
-  if (!Number.isInteger(args.quantity) || args.quantity <= 0) {
-    return '❌ Quantity must be a positive whole number';
+
+  if (!Number.isInteger(args.quantity) || args.quantity < 0) {
+    return '❌ Boxes must be a whole number (0 or more)';
   }
-  
+  const partial = args.partialStems || 0;
+  if (!Number.isInteger(partial) || partial < 0) {
+    return '❌ Partial stems must be a whole number (0 or more)';
+  }
+  if (args.quantity === 0 && partial === 0) {
+    return '❌ Drop must include boxes and/or partial stems';
+  }
+
   // Resolve request key
   const resolved = resolveRequestKey(args.requestKey);
-  
+
   if (!resolved.resolved) {
     if (resolved.ambiguous) {
       const matches = resolved.matches.map(m => `• ${m.request_key} (${m.species_name})`).join('\n');
@@ -155,60 +165,68 @@ async function drop(args, from, contactName) {
     }
     return `❌ Request key "${args.requestKey}" not found.`;
   }
-  
+
   const keyData = resolved.key;
-  
-  // Check main inventory
-  const inventory = db.getInventory(keyData.id);
-  if (!inventory || inventory.quantity < args.quantity) {
-    const available = inventory?.quantity || 0;
-    return `❌ Insufficient inventory. Available: ${available}, Requested: ${args.quantity}`;
+  const treesPerBox = keyData.trees_per_box || 180;
+  if (partial >= treesPerBox) {
+    return `❌ Partial stems (${partial}) must be less than a full box (${treesPerBox}). Add another box instead.`;
   }
-  
+
+  // Check main inventory — whole boxes pulled (a partial still opens a box)
+  const boxesNeeded = args.quantity + (partial > 0 ? 1 : 0);
+  const inventory = db.getInventory(keyData.id);
+  if (!inventory || inventory.quantity < boxesNeeded) {
+    const available = inventory?.quantity || 0;
+    return `❌ Insufficient inventory. Available: ${available} boxes, Requested: ${boxesNeeded}`;
+  }
+
   // Check allocation
   const allocation = db.getAllocation(args.section, keyData.id);
   if (!allocation) {
     return `❌ No allocation set for section ${args.section} with key ${args.requestKey}. Use /setalloc first.`;
   }
-  
-  // Check current drops for this section
+
+  // Allocation tracked in boxes; a partial counts as 1 box against the target
   const currentDrops = db.getDropsBySectionAndKey(args.section, keyData.id);
   const totalDropped = currentDrops?.total_dropped || 0;
-  
-  // Calculate remaining allocation
+  const totalPartialStems = currentDrops?.total_partial_stems || 0;
+
   const remaining = allocation.target_quantity - totalDropped;
-  
+
   if (remaining <= 0) {
     return `⚠️ Section ${args.section} already has full allocation for ${args.requestKey} (${allocation.target_quantity}/${allocation.target_quantity})`;
   }
-  
+
   if (args.quantity > remaining) {
     return `⚠️ Drop of ${args.quantity} exceeds remaining allocation of ${remaining} for section ${args.section}`;
   }
-  
+
   // Perform the drop atomically (drop record + inventory + logs + undo history)
   db.performDrop({
     section: args.section,
     requestKeyId: keyData.id,
     requestKey: args.requestKey,
     quantity: args.quantity,
-    newInventoryQty: inventory.quantity - args.quantity,
+    partialStems: partial,
+    newInventoryQty: inventory.quantity - boxesNeeded,
     from
   });
-  
+
   // Auto-sync to sheets
   const syncResult = await autoSync('drop');
-  
+
   const newTotalDropped = totalDropped + args.quantity;
+  const newTotalPartial = totalPartialStems + partial;
   const newRemaining = allocation.target_quantity - newTotalDropped;
-  
-  let response = `✅ Dropped ${args.quantity} boxes:
+  const droppedStems = newTotalDropped * treesPerBox + newTotalPartial;
+
+  let response = `✅ Dropped ${args.quantity} box${args.quantity === 1 ? '' : 'es'}${partial ? ` + ${partial} stems` : ''}:
 *Key:* ${args.requestKey}
 *Species:* ${keyData.species_name}
 *Section:* ${args.section}
-*Dropped:* ${newTotalDropped}/${allocation.target_quantity}
-*Remaining:* ${newRemaining}
-*Main Inventory:* ${inventory.quantity - args.quantity}`;
+*Dropped:* ${newTotalDropped}/${allocation.target_quantity} boxes (${droppedStems} stems)
+*Remaining:* ${newRemaining} boxes
+*Main Inventory:* ${inventory.quantity - boxesNeeded} boxes`;
   
   // Check for completion
   if (newRemaining === 0) {
@@ -297,14 +315,15 @@ async function status(args, from, contactName) {
   for (const alloc of allocations) {
     const drops = db.getDropsBySectionAndKey(args.section, alloc.request_key_id);
     const totalDropped = drops?.total_dropped || 0;
+    const totalStems = drops?.total_stems || 0;
     const remaining = alloc.target_quantity - totalDropped;
-    
+
     let statusEmoji = '⏳';
     if (remaining === 0) statusEmoji = '✅';
     else if (remaining < 0) statusEmoji = '⚠️';
-    
+
     response += `*${alloc.request_key}* (${alloc.species_name}):
-  ${statusEmoji} ${totalDropped}/${alloc.target_quantity} (${remaining} remaining)\n`;
+  ${statusEmoji} ${totalDropped}/${alloc.target_quantity} boxes (${totalStems} stems, ${remaining} remaining)\n`;
   }
   
   return response;
@@ -440,7 +459,9 @@ async function undo(args, from, contactName) {
     // Atomic undo: restore inventory + delete exact drop + delete history row
     const result = db.transaction(() => {
       const inventory = db.getInventory(actionData.requestKeyId);
-      const restoredQty = (inventory?.quantity || 0) + actionData.quantity;
+      // Partial drops pulled one extra box from the reefer — restore it too
+      const boxesToRestore = actionData.quantity + (actionData.partialStems > 0 ? 1 : 0);
+      const restoredQty = (inventory?.quantity || 0) + boxesToRestore;
       db.updateInventory(actionData.requestKeyId, restoredQty);
 
       // Delete the exact drop row if we have its id; legacy rows fall back to latest-match
@@ -455,7 +476,8 @@ async function undo(args, from, contactName) {
       return restoredQty;
     })();
 
-    return `↩️ Undid your drop:\n*Key:* ${actionData.requestKey}\n*Section:* ${actionData.section}\n*Quantity:* ${actionData.quantity}\n*New Inventory:* ${result}`;
+    const partialText = actionData.partialStems ? ` + ${actionData.partialStems} stems` : '';
+    return `↩️ Undid your drop:\n*Key:* ${actionData.requestKey}\n*Section:* ${actionData.section}\n*Quantity:* ${actionData.quantity}${partialText}\n*New Inventory:* ${result}`;
   }
 
   if (lastAction.action_type === 'addstock') {

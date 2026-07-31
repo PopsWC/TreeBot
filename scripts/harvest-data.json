@@ -1,0 +1,2659 @@
+{
+ "seedlotsSpecies": [
+  "Balsam Poplar",
+  "Paper birch",
+  "Bebb's Willow",
+  "Green alder",
+  "Red-osier dogwood",
+  "Sandbar willow",
+  "Speckled alder",
+  "Twinberry",
+  "Canada Goldenrod",
+  "Tall goldenrod",
+  "Fireweed",
+  "Northern bedstraw",
+  "Wild chives",
+  "Wild strawberry",
+  "Yarrow",
+  "Bluejoint reedgrass",
+  "Spreading dogbane",
+  "Rose (species unspecified)",
+  "Red raspberry",
+  "Chokecherry",
+  "Pin cherry",
+  "Saskatoon",
+  "Velvet-leaved blueberry",
+  "Dwarf birch",
+  "Labrador tea",
+  "Field mint"
+ ],
+ "allocations": [
+  {
+   "species": "Balsam Poplar",
+   "area": 1,
+   "stems": 67613
+  },
+  {
+   "species": "Balsam Poplar",
+   "area": 2,
+   "stems": 19881
+  },
+  {
+   "species": "Balsam Poplar",
+   "area": 3,
+   "stems": 12245
+  },
+  {
+   "species": "Balsam Poplar",
+   "area": 4,
+   "stems": 13384
+  },
+  {
+   "species": "Balsam Poplar",
+   "area": 5,
+   "stems": 125711
+  },
+  {
+   "species": "Balsam Poplar",
+   "area": 8,
+   "stems": 809
+  },
+  {
+   "species": "Paper birch",
+   "area": 6,
+   "stems": 35020
+  },
+  {
+   "species": "Paper birch",
+   "area": 7,
+   "stems": 15369
+  },
+  {
+   "species": "Paper birch",
+   "area": 8,
+   "stems": 809
+  },
+  {
+   "species": "Bebb's Willow",
+   "area": 1,
+   "stems": 76064
+  },
+  {
+   "species": "Bebb's Willow",
+   "area": 2,
+   "stems": 19881
+  },
+  {
+   "species": "Bebb's Willow",
+   "area": 3,
+   "stems": 14375
+  },
+  {
+   "species": "Bebb's Willow",
+   "area": 4,
+   "stems": 15711
+  },
+  {
+   "species": "Bebb's Willow",
+   "area": 5,
+   "stems": 14766
+  },
+  {
+   "species": "Bebb's Willow",
+   "area": 8,
+   "stems": 809
+  },
+  {
+   "species": "Bebb's Willow",
+   "area": 24,
+   "stems": 6125
+  },
+  {
+   "species": "Green alder",
+   "area": 1,
+   "stems": 64796
+  },
+  {
+   "species": "Green alder",
+   "area": 2,
+   "stems": 19017
+  },
+  {
+   "species": "Green alder",
+   "area": 3,
+   "stems": 11713
+  },
+  {
+   "species": "Green alder",
+   "area": 4,
+   "stems": 12802
+  },
+  {
+   "species": "Green alder",
+   "area": 5,
+   "stems": 12032
+  },
+  {
+   "species": "Green alder",
+   "area": 8,
+   "stems": 809
+  },
+  {
+   "species": "Green alder",
+   "area": 14,
+   "stems": 3580
+  },
+  {
+   "species": "Green alder",
+   "area": 26,
+   "stems": 1333
+  },
+  {
+   "species": "Red-osier dogwood",
+   "area": 5,
+   "stems": 400
+  },
+  {
+   "species": "Red-osier dogwood",
+   "area": 8,
+   "stems": 160
+  },
+  {
+   "species": "Sandbar willow",
+   "area": 3,
+   "stems": 14907
+  },
+  {
+   "species": "Sandbar willow",
+   "area": 6,
+   "stems": 48153
+  },
+  {
+   "species": "Sandbar willow",
+   "area": 7,
+   "stems": 27944
+  },
+  {
+   "species": "Sandbar willow",
+   "area": 8,
+   "stems": 809
+  },
+  {
+   "species": "Sandbar willow",
+   "area": 25,
+   "stems": 6321
+  },
+  {
+   "species": "Speckled alder",
+   "area": 6,
+   "stems": 26270
+  },
+  {
+   "species": "Speckled alder",
+   "area": 7,
+   "stems": 2096
+  },
+  {
+   "species": "Speckled alder",
+   "area": 8,
+   "stems": 809
+  },
+  {
+   "species": "Speckled alder",
+   "area": 19,
+   "stems": 3580
+  },
+  {
+   "species": "Speckled alder",
+   "area": 26,
+   "stems": 559
+  },
+  {
+   "species": "Twinberry",
+   "area": 4,
+   "stems": 1164
+  },
+  {
+   "species": "Twinberry",
+   "area": 5,
+   "stems": 453
+  },
+  {
+   "species": "Canada Goldenrod",
+   "area": 3,
+   "stems": 1065
+  },
+  {
+   "species": "Canada Goldenrod",
+   "area": 5,
+   "stems": 1094
+  },
+  {
+   "species": "Canada Goldenrod",
+   "area": 8,
+   "stems": 4851
+  },
+  {
+   "species": "Canada Goldenrod",
+   "area": 16,
+   "stems": 790
+  },
+  {
+   "species": "Tall goldenrod",
+   "area": 3,
+   "stems": 3737
+  },
+  {
+   "species": "Tall goldenrod",
+   "area": 26,
+   "stems": 923
+  },
+  {
+   "species": "Fireweed",
+   "area": 3,
+   "stems": 1065
+  },
+  {
+   "species": "Fireweed",
+   "area": 5,
+   "stems": 2735
+  },
+  {
+   "species": "Fireweed",
+   "area": 8,
+   "stems": 4851
+  },
+  {
+   "species": "Fireweed",
+   "area": 16,
+   "stems": 1185
+  },
+  {
+   "species": "Fireweed",
+   "area": 26,
+   "stems": 2005
+  },
+  {
+   "species": "Northern bedstraw",
+   "area": 1,
+   "stems": 7043
+  },
+  {
+   "species": "Northern bedstraw",
+   "area": 3,
+   "stems": 1065
+  },
+  {
+   "species": "Northern bedstraw",
+   "area": 8,
+   "stems": 2426
+  },
+  {
+   "species": "Northern bedstraw",
+   "area": 26,
+   "stems": 1000
+  },
+  {
+   "species": "Wild chives",
+   "area": 3,
+   "stems": 2130
+  },
+  {
+   "species": "Wild chives",
+   "area": 8,
+   "stems": 323
+  },
+  {
+   "species": "Wild chives",
+   "area": 16,
+   "stems": 500
+  },
+  {
+   "species": "Wild chives",
+   "area": 21,
+   "stems": 2400
+  },
+  {
+   "species": "Wild strawberry",
+   "area": 3,
+   "stems": 5324
+  },
+  {
+   "species": "Wild strawberry",
+   "area": 5,
+   "stems": 2735
+  },
+  {
+   "species": "Wild strawberry",
+   "area": 8,
+   "stems": 1617
+  },
+  {
+   "species": "Wild strawberry",
+   "area": 23,
+   "stems": 3200
+  },
+  {
+   "species": "Wild strawberry",
+   "area": 26,
+   "stems": 2583
+  },
+  {
+   "species": "Yarrow",
+   "area": 1,
+   "stems": 7043
+  },
+  {
+   "species": "Yarrow",
+   "area": 2,
+   "stems": 2161
+  },
+  {
+   "species": "Yarrow",
+   "area": 3,
+   "stems": 5324
+  },
+  {
+   "species": "Yarrow",
+   "area": 4,
+   "stems": 1455
+  },
+  {
+   "species": "Yarrow",
+   "area": 5,
+   "stems": 1367
+  },
+  {
+   "species": "Yarrow",
+   "area": 7,
+   "stems": 1747
+  },
+  {
+   "species": "Yarrow",
+   "area": 8,
+   "stems": 8085
+  },
+  {
+   "species": "Yarrow",
+   "area": 23,
+   "stems": 3200
+  },
+  {
+   "species": "Bluejoint reedgrass",
+   "area": 3,
+   "stems": 1331
+  },
+  {
+   "species": "Bluejoint reedgrass",
+   "area": 6,
+   "stems": 2189
+  },
+  {
+   "species": "Bluejoint reedgrass",
+   "area": 8,
+   "stems": 1132
+  },
+  {
+   "species": "Spreading dogbane",
+   "area": 2,
+   "stems": 53074
+  },
+  {
+   "species": "Rose (species unspecified)",
+   "area": 9,
+   "stems": 1320
+  },
+  {
+   "species": "Red raspberry",
+   "area": 10,
+   "stems": 1320
+  },
+  {
+   "species": "Chokecherry",
+   "area": 11,
+   "stems": 1320
+  },
+  {
+   "species": "Pin cherry",
+   "area": 12,
+   "stems": 1320
+  },
+  {
+   "species": "Saskatoon",
+   "area": 13,
+   "stems": 1320
+  },
+  {
+   "species": "Velvet-leaved blueberry",
+   "area": 15,
+   "stems": 800
+  },
+  {
+   "species": "Dwarf birch",
+   "area": 17,
+   "stems": 220
+  },
+  {
+   "species": "Labrador tea",
+   "area": 18,
+   "stems": 2588
+  },
+  {
+   "species": "Field mint",
+   "area": 20,
+   "stems": 1600
+  }
+ ],
+ "drops": [
+  {
+   "rowNum": 2,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "bebbs willow 005",
+   "boxes": 27,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 3,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "bebbs willow 005",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 4,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "bebbs willow 005",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 5,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "bebbs willow 005",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 6,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "bebbs willow 005",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 7,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "bebbs willow 005",
+   "boxes": 5,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 8,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "RT",
+   "seedlot": "bebbs willow 005",
+   "boxes": 19,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 9,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "RT",
+   "seedlot": "bebbs willow 005",
+   "boxes": 13,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 10,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "RT",
+   "seedlot": "bebbs willow 005",
+   "boxes": 18,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 11,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "RT",
+   "seedlot": "bebbs willow 005",
+   "boxes": 45,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 12,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "RT",
+   "seedlot": "bebbs willow 005",
+   "boxes": 7,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 13,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "RT",
+   "seedlot": "bebbs willow 005",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 14,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 15,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 16,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 17,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 18,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 19,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 7,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 20,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 21,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "green alder 055b",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 22,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "green alder 055b",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 23,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "green alder 055b",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 24,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "green alder 055b",
+   "boxes": 6,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 25,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "SK",
+   "seedlot": "green alder 055b",
+   "boxes": 20,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 26,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "SK",
+   "seedlot": "green alder 081",
+   "boxes": 6,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 27,
+   "date": "2026-07-19 00:00:00",
+   "area": 1,
+   "crew": "RT",
+   "seedlot": "northern bed straw 43",
+   "boxes": 30,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 28,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "poplar 005",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 29,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "poplar 011",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 30,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "poplar 011",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 31,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "SK",
+   "seedlot": "poplar 011",
+   "boxes": 6,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 32,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "poplar 014",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 33,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "poplar 014",
+   "boxes": 20,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 34,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "poplar 014",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 35,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "poplar 014",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 36,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "poplar 014",
+   "boxes": 6,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 37,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "poplar 014",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 38,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "poplar 014",
+   "boxes": 17,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 39,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "AP",
+   "seedlot": "poplar 014",
+   "boxes": 7,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 40,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "RT",
+   "seedlot": "poplar 014",
+   "boxes": 4,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 41,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "RT",
+   "seedlot": "poplar 014",
+   "boxes": 17,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 42,
+   "date": "2026-07-26 00:00:00",
+   "area": 1,
+   "crew": "SK",
+   "seedlot": "poplar 014",
+   "boxes": 16,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 43,
+   "date": "2026-07-28 00:00:00",
+   "area": 1,
+   "crew": "SK",
+   "seedlot": "poplar 014",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 44,
+   "date": "2026-07-19 00:00:00",
+   "area": 1,
+   "crew": "RT",
+   "seedlot": "yarrow 41",
+   "boxes": 30,
+   "partialStems": 230
+  },
+  {
+   "rowNum": 45,
+   "date": "2026-07-22 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "bebbs willow 005",
+   "boxes": 2,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 46,
+   "date": "2026-07-22 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "bebbs willow 005",
+   "boxes": 7,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 47,
+   "date": "2026-07-24 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "bebbs willow 005",
+   "boxes": 4,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 48,
+   "date": "2026-07-28 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "green alder 055b",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 49,
+   "date": "2026-07-28 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "green alder 055b",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 50,
+   "date": "2026-07-28 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "green alder 055b",
+   "boxes": 24,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 51,
+   "date": "2026-07-28 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "green alder 055b",
+   "boxes": 6,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 52,
+   "date": "2026-07-28 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "green alder 055b",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 53,
+   "date": "2026-07-28 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "green alder 055b",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 54,
+   "date": "2026-07-26 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "green alder 055b",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 55,
+   "date": "2026-07-28 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "green alder 081",
+   "boxes": 13,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 56,
+   "date": "2026-07-28 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "poplar 005",
+   "boxes": 19,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 57,
+   "date": "2026-07-29 00:00:00",
+   "area": 2,
+   "crew": "SK",
+   "seedlot": "poplar 005",
+   "boxes": 12,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 58,
+   "date": "2026-07-26 00:00:00",
+   "area": 2,
+   "crew": "SK",
+   "seedlot": "poplar 005",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 59,
+   "date": "2026-07-28 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "poplar 011",
+   "boxes": 6,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 60,
+   "date": "2026-07-28 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "poplar 011",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 61,
+   "date": "2026-07-28 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "poplar 014",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 62,
+   "date": "2026-07-28 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "poplar 014",
+   "boxes": 12,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 63,
+   "date": "2026-07-26 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "poplar 014",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 64,
+   "date": "2026-07-21 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 65,
+   "date": "2026-07-22 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 2,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 66,
+   "date": "2026-07-20 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 67,
+   "date": "2026-07-20 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 7,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 68,
+   "date": "2026-07-21 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 23,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 69,
+   "date": "2026-07-21 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 12,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 70,
+   "date": "2026-07-21 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 6,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 71,
+   "date": "2026-07-21 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 22,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 72,
+   "date": "2026-07-21 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 9,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 73,
+   "date": "2026-07-23 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 30,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 74,
+   "date": "2026-07-24 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 75,
+   "date": "2026-07-24 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 76,
+   "date": "2026-07-24 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 77,
+   "date": "2026-07-24 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 6,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 78,
+   "date": "2026-07-24 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 79,
+   "date": "2026-07-24 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 15,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 80,
+   "date": "2026-07-25 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 81,
+   "date": "2026-07-25 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 10,
+   "partialStems": 50
+  },
+  {
+   "rowNum": 82,
+   "date": "2026-07-25 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 4,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 83,
+   "date": "2026-07-29 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 84,
+   "date": "2026-07-26 00:00:00",
+   "area": 2,
+   "crew": "DP",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 1,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 85,
+   "date": "2026-07-20 00:00:00",
+   "area": 2,
+   "crew": "RT",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 7,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 86,
+   "date": "2026-07-20 00:00:00",
+   "area": 2,
+   "crew": "RT",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 87,
+   "date": "2026-07-21 00:00:00",
+   "area": 2,
+   "crew": "RT",
+   "seedlot": "spreding dogbane 73",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 88,
+   "date": "2026-07-19 00:00:00",
+   "area": 2,
+   "crew": "RT",
+   "seedlot": "yarrow 41",
+   "boxes": 12,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 89,
+   "date": "2026-07-25 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 15,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 90,
+   "date": "2026-07-25 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 15,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 91,
+   "date": "2026-07-25 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 13,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 92,
+   "date": "2026-07-25 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 7,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 93,
+   "date": "2026-07-25 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 94,
+   "date": "2026-07-27 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 9,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 95,
+   "date": "2026-07-27 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 7,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 96,
+   "date": "2026-07-21 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "blue joint reedgrass 40",
+   "boxes": 0,
+   "partialStems": 50
+  },
+  {
+   "rowNum": 97,
+   "date": "2026-07-29 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "blue joint reedgrass 40",
+   "boxes": 4,
+   "partialStems": 140
+  },
+  {
+   "rowNum": 98,
+   "date": "2026-07-29 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "blue joint reedgrass 40",
+   "boxes": 1,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 99,
+   "date": "2026-07-29 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "blue joint reedgrass 40",
+   "boxes": 0,
+   "partialStems": 100
+  },
+  {
+   "rowNum": 100,
+   "date": "2026-07-19 00:00:00",
+   "area": 3,
+   "crew": "RT",
+   "seedlot": "chives 16",
+   "boxes": 12,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 101,
+   "date": "2026-07-21 00:00:00",
+   "area": 3,
+   "crew": "RT",
+   "seedlot": "cyote willow 014",
+   "boxes": 16,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 102,
+   "date": "2026-07-21 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "cyote willow 014",
+   "boxes": 16,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 103,
+   "date": "2026-07-21 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "cyote willow 014",
+   "boxes": 16,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 104,
+   "date": "2026-07-21 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "cyote willow 014",
+   "boxes": 16,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 105,
+   "date": "2026-07-21 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "cyote willow 014",
+   "boxes": 19,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 107,
+   "date": "2026-07-19 00:00:00",
+   "area": 3,
+   "crew": "RT",
+   "seedlot": "fireweed 14a",
+   "boxes": 6,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 108,
+   "date": "2026-07-22 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "northern bed straw 43",
+   "boxes": 5,
+   "partialStems": 140
+  },
+  {
+   "rowNum": 109,
+   "date": "2026-07-26 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "northern bed straw 43",
+   "boxes": 0,
+   "partialStems": 20
+  },
+  {
+   "rowNum": 110,
+   "date": "2026-07-28 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "poplar 005",
+   "boxes": 15,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 111,
+   "date": "2026-07-28 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "poplar 005",
+   "boxes": 15,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 112,
+   "date": "2026-07-29 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "poplar 005",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 113,
+   "date": "2026-07-29 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "poplar 005",
+   "boxes": 16,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 114,
+   "date": "2026-07-26 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "poplar 005",
+   "boxes": 5,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 115,
+   "date": "2026-07-29 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "poplar 014",
+   "boxes": 12,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 116,
+   "date": "2026-07-22 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "tall golden rod 67",
+   "boxes": 7,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 117,
+   "date": "2026-07-25 00:00:00",
+   "area": 3,
+   "crew": "SK",
+   "seedlot": "tall golden rod 67",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 119,
+   "date": "2026-07-19 00:00:00",
+   "area": 3,
+   "crew": "RT",
+   "seedlot": "wild strawberry 28",
+   "boxes": 30,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 120,
+   "date": "2026-07-19 00:00:00",
+   "area": 3,
+   "crew": "RT",
+   "seedlot": "yarrow 41",
+   "boxes": 30,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 122,
+   "date": "2026-07-26 00:00:00",
+   "area": 4,
+   "crew": "DP",
+   "seedlot": "bebbs willow 005",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 123,
+   "date": "2026-07-26 00:00:00",
+   "area": 4,
+   "crew": "DP",
+   "seedlot": "bebbs willow 005",
+   "boxes": 27,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 124,
+   "date": "2026-07-23 00:00:00",
+   "area": 4,
+   "crew": "DP",
+   "seedlot": "bebbs willow 005",
+   "boxes": 30,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 125,
+   "date": "2026-07-24 00:00:00",
+   "area": 4,
+   "crew": "DP",
+   "seedlot": "bebbs willow 005",
+   "boxes": 13,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 126,
+   "date": "2026-07-25 00:00:00",
+   "area": 4,
+   "crew": "DP",
+   "seedlot": "bebbs willow 005",
+   "boxes": 3,
+   "partialStems": 50
+  },
+  {
+   "rowNum": 127,
+   "date": "2026-07-25 00:00:00",
+   "area": 4,
+   "crew": "DP",
+   "seedlot": "black twin berry 29",
+   "boxes": 0,
+   "partialStems": 90
+  },
+  {
+   "rowNum": 128,
+   "date": "2026-07-19 00:00:00",
+   "area": 4,
+   "crew": "RT",
+   "seedlot": "black twin berry 29",
+   "boxes": 6,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 129,
+   "date": "2026-07-28 00:00:00",
+   "area": 4,
+   "crew": "SK",
+   "seedlot": "green alder 055b",
+   "boxes": 13,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 130,
+   "date": "2026-07-28 00:00:00",
+   "area": 4,
+   "crew": "SK",
+   "seedlot": "green alder 055b",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 131,
+   "date": "2026-07-28 00:00:00",
+   "area": 4,
+   "crew": "SK",
+   "seedlot": "green alder 055b",
+   "boxes": 13,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 132,
+   "date": "2026-07-29 00:00:00",
+   "area": 4,
+   "crew": "SK",
+   "seedlot": "green alder 055b",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 133,
+   "date": "2026-07-29 00:00:00",
+   "area": 4,
+   "crew": "SK",
+   "seedlot": "green alder 055b",
+   "boxes": 3,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 134,
+   "date": "2026-07-28 00:00:00",
+   "area": 4,
+   "crew": "SK",
+   "seedlot": "green alder 081",
+   "boxes": 4,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 135,
+   "date": "2026-07-28 00:00:00",
+   "area": 4,
+   "crew": "SK",
+   "seedlot": "green alder 081",
+   "boxes": 13,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 136,
+   "date": "2026-07-28 00:00:00",
+   "area": 4,
+   "crew": "SK",
+   "seedlot": "poplar 005",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 137,
+   "date": "2026-07-28 00:00:00",
+   "area": 4,
+   "crew": "SK",
+   "seedlot": "poplar 005",
+   "boxes": 16,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 138,
+   "date": "2026-07-29 00:00:00",
+   "area": 4,
+   "crew": "SK",
+   "seedlot": "poplar 005",
+   "boxes": 13,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 139,
+   "date": "2026-07-26 00:00:00",
+   "area": 4,
+   "crew": "SK",
+   "seedlot": "poplar 011",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 140,
+   "date": "2026-07-29 00:00:00",
+   "area": 4,
+   "crew": "SK",
+   "seedlot": "poplar 011",
+   "boxes": 0,
+   "partialStems": 60
+  },
+  {
+   "rowNum": 141,
+   "date": "2026-07-26 00:00:00",
+   "area": 4,
+   "crew": "SK",
+   "seedlot": "poplar 014",
+   "boxes": 7,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 142,
+   "date": "2026-07-29 00:00:00",
+   "area": 4,
+   "crew": "SK",
+   "seedlot": "poplar 014",
+   "boxes": 15,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 144,
+   "date": "2026-07-19 00:00:00",
+   "area": 4,
+   "crew": "RT",
+   "seedlot": "yarrow 41",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 145,
+   "date": "2026-07-26 00:00:00",
+   "area": 5,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 146,
+   "date": "2026-07-26 00:00:00",
+   "area": 5,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 13,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 147,
+   "date": "2026-07-25 00:00:00",
+   "area": 5,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 148,
+   "date": "2026-07-26 00:00:00",
+   "area": 5,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 149,
+   "date": "2026-07-26 00:00:00",
+   "area": 5,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 6,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 150,
+   "date": "2026-07-26 00:00:00",
+   "area": 5,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 151,
+   "date": "2026-07-26 00:00:00",
+   "area": 5,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 13,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 152,
+   "date": "2026-07-20 00:00:00",
+   "area": 5,
+   "crew": "AP",
+   "seedlot": "canadian golden rod 76",
+   "boxes": 6,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 153,
+   "date": "2026-07-24 00:00:00",
+   "area": 5,
+   "crew": "SK",
+   "seedlot": "dogwood 018",
+   "boxes": 2,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 154,
+   "date": "2026-07-20 00:00:00",
+   "area": 5,
+   "crew": "AP",
+   "seedlot": "fireweed 14a",
+   "boxes": 15,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 155,
+   "date": "2026-07-28 00:00:00",
+   "area": 5,
+   "crew": "DP",
+   "seedlot": "green alder 055b",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 156,
+   "date": "2026-07-28 00:00:00",
+   "area": 5,
+   "crew": "DP",
+   "seedlot": "green alder 055b",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 157,
+   "date": "2026-07-29 00:00:00",
+   "area": 5,
+   "crew": "AP",
+   "seedlot": "poplar 005",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 158,
+   "date": "2026-07-26 00:00:00",
+   "area": 5,
+   "crew": "AP",
+   "seedlot": "poplar 005",
+   "boxes": 4,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 159,
+   "date": "2026-07-28 00:00:00",
+   "area": 5,
+   "crew": "DP",
+   "seedlot": "poplar 005",
+   "boxes": 12,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 160,
+   "date": "2026-07-28 00:00:00",
+   "area": 5,
+   "crew": "DP",
+   "seedlot": "poplar 005",
+   "boxes": 12,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 161,
+   "date": "2026-07-25 00:00:00",
+   "area": 5,
+   "crew": "SK",
+   "seedlot": "wild strawberry 28",
+   "boxes": 15,
+   "partialStems": 30
+  },
+  {
+   "rowNum": 162,
+   "date": "2026-07-20 00:00:00",
+   "area": 5,
+   "crew": "AP",
+   "seedlot": "yarrow 41",
+   "boxes": 5,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 163,
+   "date": "2026-07-26 00:00:00",
+   "area": 5,
+   "crew": "SK",
+   "seedlot": "yarrow 41",
+   "boxes": 4,
+   "partialStems": 120
+  },
+  {
+   "rowNum": 165,
+   "date": "2026-07-25 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "blue joint reedgrass 40",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 166,
+   "date": "2026-07-25 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "blue joint reedgrass 40",
+   "boxes": 2,
+   "partialStems": 30
+  },
+  {
+   "rowNum": 167,
+   "date": "2026-07-28 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "cyote willow 014",
+   "boxes": 15,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 168,
+   "date": "2026-07-21 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "cyote willow 014",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 169,
+   "date": "2026-07-21 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "cyote willow 014",
+   "boxes": 16,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 170,
+   "date": "2026-07-21 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "cyote willow 014",
+   "boxes": 16,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 171,
+   "date": "2026-07-21 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "cyote willow 014",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 173,
+   "date": "2026-07-23 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "cyote willow 014",
+   "boxes": 60,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 174,
+   "date": "2026-07-24 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "cyote willow 014",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 175,
+   "date": "2026-07-24 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "cyote willow 014",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 176,
+   "date": "2026-07-24 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "cyote willow 014",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 177,
+   "date": "2026-07-24 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "cyote willow 014",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 178,
+   "date": "2026-07-24 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "cyote willow 014",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 179,
+   "date": "2026-07-24 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "cyote willow 014",
+   "boxes": 4,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 180,
+   "date": "2026-07-26 00:00:00",
+   "area": 6,
+   "crew": "DP",
+   "seedlot": "cyote willow 014",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 181,
+   "date": "2026-07-26 00:00:00",
+   "area": 6,
+   "crew": "SK",
+   "seedlot": "cyote willow 014",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 182,
+   "date": "2026-07-26 00:00:00",
+   "area": 6,
+   "crew": "SK",
+   "seedlot": "cyote willow 014",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 183,
+   "date": "2026-07-26 00:00:00",
+   "area": 6,
+   "crew": "SK",
+   "seedlot": "cyote willow 014",
+   "boxes": 16,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 184,
+   "date": "2026-07-26 00:00:00",
+   "area": 6,
+   "crew": "SK",
+   "seedlot": "cyote willow 014",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 185,
+   "date": "2026-07-20 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "paper birch 68",
+   "boxes": 12,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 186,
+   "date": "2026-07-21 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "paper birch 68",
+   "boxes": 16,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 187,
+   "date": "2026-07-22 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "paper birch 68",
+   "boxes": 16,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 188,
+   "date": "2026-07-22 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "paper birch 68",
+   "boxes": 12,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 189,
+   "date": "2026-07-25 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "paper birch 68",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 191,
+   "date": "2026-07-20 00:00:00",
+   "area": 6,
+   "crew": "SK",
+   "seedlot": "paper birch 68",
+   "boxes": 42,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 192,
+   "date": "2026-07-20 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "paper birch 93",
+   "boxes": 30,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 193,
+   "date": "2026-07-24 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "paper birch 93",
+   "boxes": 22,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 194,
+   "date": "2026-07-24 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "paper birch 93",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 195,
+   "date": "2026-07-24 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "paper birch 93",
+   "boxes": 11,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 196,
+   "date": "2026-07-20 00:00:00",
+   "area": 6,
+   "crew": "RT",
+   "seedlot": "paper birch 93",
+   "boxes": 12,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 197,
+   "date": "2026-07-26 00:00:00",
+   "area": 6,
+   "crew": "SK",
+   "seedlot": "paper birch 93",
+   "boxes": 2,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 198,
+   "date": "2026-07-21 00:00:00",
+   "area": 6,
+   "crew": "AP",
+   "seedlot": "river alder 72",
+   "boxes": 14,
+   "partialStems": 110
+  },
+  {
+   "rowNum": 199,
+   "date": "2026-07-26 00:00:00",
+   "area": 7,
+   "crew": "SK",
+   "seedlot": "paper birch 68",
+   "boxes": 9,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 200,
+   "date": "2026-07-26 00:00:00",
+   "area": 7,
+   "crew": "SK",
+   "seedlot": "paper birch 93",
+   "boxes": 15,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 201,
+   "date": "2026-07-26 00:00:00",
+   "area": 7,
+   "crew": "SK",
+   "seedlot": "paper birch 93",
+   "boxes": 14,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 202,
+   "date": "2026-07-26 00:00:00",
+   "area": 7,
+   "crew": "SK",
+   "seedlot": "paper birch 93",
+   "boxes": 5,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 203,
+   "date": "2026-07-26 00:00:00",
+   "area": 7,
+   "crew": "SK",
+   "seedlot": "yarrow 41",
+   "boxes": 7,
+   "partialStems": 60
+  },
+  {
+   "rowNum": 204,
+   "date": "2026-07-26 00:00:00",
+   "area": 7,
+   "crew": "SK",
+   "seedlot": "yarrow 41",
+   "boxes": 2,
+   "partialStems": 70
+  },
+  {
+   "rowNum": 205,
+   "date": "2026-07-25 00:00:00",
+   "area": 8,
+   "crew": "SK",
+   "seedlot": "bebbs willow 005",
+   "boxes": 4,
+   "partialStems": 90
+  },
+  {
+   "rowNum": 206,
+   "date": "2026-07-25 00:00:00",
+   "area": 8,
+   "crew": "SK",
+   "seedlot": "black twin berry 29",
+   "boxes": 4,
+   "partialStems": 90
+  },
+  {
+   "rowNum": 207,
+   "date": "2026-07-26 00:00:00",
+   "area": 8,
+   "crew": "SK",
+   "seedlot": "canadian golden rod 76",
+   "boxes": 4,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 208,
+   "date": "2026-07-26 00:00:00",
+   "area": 8,
+   "crew": "SK",
+   "seedlot": "canadian golden rod 76",
+   "boxes": 4,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 209,
+   "date": "2026-07-21 00:00:00",
+   "area": 8,
+   "crew": "SK",
+   "seedlot": "chives 16",
+   "boxes": 2,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 211,
+   "date": "2026-07-26 00:00:00",
+   "area": 8,
+   "crew": "SK",
+   "seedlot": "cyote willow 014",
+   "boxes": 4,
+   "partialStems": 90
+  },
+  {
+   "rowNum": 212,
+   "date": "2026-07-28 00:00:00",
+   "area": 8,
+   "crew": "SK",
+   "seedlot": "dogwood 018",
+   "boxes": 4,
+   "partialStems": 90
+  },
+  {
+   "rowNum": 213,
+   "date": "2026-07-26 00:00:00",
+   "area": 8,
+   "crew": "SK",
+   "seedlot": "fireweed 14a",
+   "boxes": 15,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 214,
+   "date": "2026-07-12 00:00:00",
+   "area": 8,
+   "crew": "SK",
+   "seedlot": "fireweed 14a",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 216,
+   "date": "2026-07-26 00:00:00",
+   "area": 8,
+   "crew": "SK",
+   "seedlot": "fireweed 14a",
+   "boxes": 2,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 217,
+   "date": "2026-07-21 00:00:00",
+   "area": 8,
+   "crew": "SK",
+   "seedlot": "northern bed straw 43",
+   "boxes": 13,
+   "partialStems": 90
+  },
+  {
+   "rowNum": 220,
+   "date": "2026-07-21 00:00:00",
+   "area": 8,
+   "crew": "RT",
+   "seedlot": "paper birch 93",
+   "boxes": 5,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 221,
+   "date": "2026-07-21 00:00:00",
+   "area": 8,
+   "crew": "RT",
+   "seedlot": "river alder 72",
+   "boxes": 5,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 223,
+   "date": "2026-07-21 00:00:00",
+   "area": 8,
+   "crew": "RT",
+   "seedlot": "wild strawberry 28",
+   "boxes": 9,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 224,
+   "date": "2026-07-21 00:00:00",
+   "area": 8,
+   "crew": "RT",
+   "seedlot": "yarrow 41",
+   "boxes": 15,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 225,
+   "date": "2026-07-21 00:00:00",
+   "area": 8,
+   "crew": "SK",
+   "seedlot": "yarrow 41",
+   "boxes": 16,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 226,
+   "date": "2026-07-21 00:00:00",
+   "area": 8,
+   "crew": "SK",
+   "seedlot": "yarrow 41",
+   "boxes": 13,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 228,
+   "date": "2026-07-26 00:00:00",
+   "area": 8,
+   "crew": "SK",
+   "seedlot": "yarrow 41",
+   "boxes": 1,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 229,
+   "date": "2026-07-26 00:00:00",
+   "area": 12,
+   "crew": "AP",
+   "seedlot": "paper birch 68",
+   "boxes": 12,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 230,
+   "date": "2026-07-28 00:00:00",
+   "area": 14,
+   "crew": "SK",
+   "seedlot": "green alder 055b",
+   "boxes": 4,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 231,
+   "date": "2026-07-26 00:00:00",
+   "area": 17,
+   "crew": "SK",
+   "seedlot": "bog birch 64",
+   "boxes": 0,
+   "partialStems": 220
+  },
+  {
+   "rowNum": 233,
+   "date": "2026-07-26 00:00:00",
+   "area": 19,
+   "crew": "SK",
+   "seedlot": "river alder 72",
+   "boxes": 10,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 234,
+   "date": "2026-07-26 00:00:00",
+   "area": 19,
+   "crew": "SK",
+   "seedlot": "river alder 72",
+   "boxes": 9,
+   "partialStems": 120
+  },
+  {
+   "rowNum": 235,
+   "date": "2026-07-26 00:00:00",
+   "area": 19,
+   "crew": "SK",
+   "seedlot": "river alder 72",
+   "boxes": 16,
+   "partialStems": 110
+  },
+  {
+   "rowNum": 236,
+   "date": "2026-07-20 00:00:00",
+   "area": 20,
+   "crew": "AP",
+   "seedlot": "field mint 036",
+   "boxes": 8,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 237,
+   "date": "2026-07-24 00:00:00",
+   "area": 20,
+   "crew": "SK",
+   "seedlot": "field mint 036",
+   "boxes": 0,
+   "partialStems": 80
+  },
+  {
+   "rowNum": 238,
+   "date": "2026-07-24 00:00:00",
+   "area": 20,
+   "crew": "SK",
+   "seedlot": "field mint 036",
+   "boxes": 1,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 239,
+   "date": "2026-07-20 00:00:00",
+   "area": 21,
+   "crew": "RT",
+   "seedlot": "chives 16",
+   "boxes": 7,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 240,
+   "date": "2026-07-22 00:00:00",
+   "area": 21,
+   "crew": "SK",
+   "seedlot": "chives 16",
+   "boxes": 6,
+   "partialStems": 50
+  },
+  {
+   "rowNum": 242,
+   "date": "2026-07-21 00:00:00",
+   "area": 22,
+   "crew": "SK",
+   "seedlot": "yarrow 41",
+   "boxes": 16,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 243,
+   "date": "2026-07-26 00:00:00",
+   "area": 22,
+   "crew": "SK",
+   "seedlot": "yarrow 41",
+   "boxes": 1,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 244,
+   "date": "2026-07-24 00:00:00",
+   "area": 23,
+   "crew": "SK",
+   "seedlot": "wild strawberry 28",
+   "boxes": 10,
+   "partialStems": 140
+  },
+  {
+   "rowNum": 245,
+   "date": "2026-07-24 00:00:00",
+   "area": 23,
+   "crew": "SK",
+   "seedlot": "wild strawberry 28",
+   "boxes": 7,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 246,
+   "date": "2026-07-27 00:00:00",
+   "area": 26,
+   "crew": "DP",
+   "seedlot": "fireweed 14a",
+   "boxes": 11,
+   "partialStems": 20
+  },
+  {
+   "rowNum": 247,
+   "date": "2026-07-28 00:00:00",
+   "area": 26,
+   "crew": "DP",
+   "seedlot": "green alder 081",
+   "boxes": 7,
+   "partialStems": 70
+  },
+  {
+   "rowNum": 248,
+   "date": "2026-07-25 00:00:00",
+   "area": 26,
+   "crew": "DP",
+   "seedlot": "northern bed straw 43",
+   "boxes": 5,
+   "partialStems": 100
+  },
+  {
+   "rowNum": 249,
+   "date": "2026-07-25 00:00:00",
+   "area": 26,
+   "crew": "DP",
+   "seedlot": "river alder 72",
+   "boxes": 3,
+   "partialStems": 20
+  },
+  {
+   "rowNum": 250,
+   "date": "2026-07-25 00:00:00",
+   "area": 26,
+   "crew": "DP",
+   "seedlot": "tall golden rod 67",
+   "boxes": 4,
+   "partialStems": 0
+  },
+  {
+   "rowNum": 251,
+   "date": "2026-07-25 00:00:00",
+   "area": 26,
+   "crew": "DP",
+   "seedlot": "tall golden rod 67",
+   "boxes": 0,
+   "partialStems": 10
+  },
+  {
+   "rowNum": 252,
+   "date": "2026-07-25 00:00:00",
+   "area": 26,
+   "crew": "DP",
+   "seedlot": "wild strawberry 28",
+   "boxes": 14,
+   "partialStems": 60
+  }
+ ],
+ "reefer": [
+  {
+   "species": "Balsam Poplar",
+   "reeferBoxes": 113
+  },
+  {
+   "species": "Paper birch",
+   "reeferBoxes": 34
+  },
+  {
+   "species": "Bebb's Willow",
+   "reeferBoxes": 251
+  },
+  {
+   "species": "Green alder",
+   "reeferBoxes": 449
+  },
+  {
+   "species": "Red-osier dogwood",
+   "reeferBoxes": 0
+  },
+  {
+   "species": "Sandbar willow",
+   "reeferBoxes": 0
+  },
+  {
+   "species": "Speckled alder",
+   "reeferBoxes": 41
+  },
+  {
+   "species": "Twinberry",
+   "reeferBoxes": 0
+  },
+  {
+   "species": "Canada Goldenrod",
+   "reeferBoxes": 0
+  },
+  {
+   "species": "Tall goldenrod",
+   "reeferBoxes": 0
+  },
+  {
+   "species": "Fireweed",
+   "reeferBoxes": 3
+  },
+  {
+   "species": "Northern bedstraw",
+   "reeferBoxes": 11
+  },
+  {
+   "species": "Wild chives",
+   "reeferBoxes": 3
+  },
+  {
+   "species": "Wild strawberry",
+   "reeferBoxes": 1
+  },
+  {
+   "species": "Yarrow",
+   "reeferBoxes": 8
+  },
+  {
+   "species": "Bluejoint reedgrass",
+   "reeferBoxes": 0
+  },
+  {
+   "species": "Spreading dogbane",
+   "reeferBoxes": 37
+  },
+  {
+   "species": "Velvet-leaved blueberry",
+   "reeferBoxes": 0
+  },
+  {
+   "species": "Dwarf birch",
+   "reeferBoxes": 0
+  },
+  {
+   "species": "Labrador tea",
+   "reeferBoxes": 0
+  },
+  {
+   "species": "Field mint",
+   "reeferBoxes": 0
+  }
+ ]
+}

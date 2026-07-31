@@ -22,6 +22,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS species (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL,
+    trees_per_box INTEGER NOT NULL DEFAULT 180,
     created_at TEXT DEFAULT (datetime('now'))
   );
 
@@ -66,6 +67,7 @@ db.exec(`
     section TEXT NOT NULL,
     request_key_id INTEGER NOT NULL,
     quantity INTEGER NOT NULL,
+    partial_stems INTEGER NOT NULL DEFAULT 0,
     dropped_by TEXT,
     created_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (section) REFERENCES sections(id),
@@ -92,6 +94,15 @@ db.exec(`
   );
 `);
 
+// Migrate existing DBs (CREATE TABLE IF NOT EXISTS won't alter existing tables)
+const cols = (t) => db.prepare(`PRAGMA table_info(${t})`).all().map(c => c.name);
+if (!cols('species').includes('trees_per_box')) {
+  db.exec("ALTER TABLE species ADD COLUMN trees_per_box INTEGER NOT NULL DEFAULT 180");
+}
+if (!cols('drop_history').includes('partial_stems')) {
+  db.exec("ALTER TABLE drop_history ADD COLUMN partial_stems INTEGER NOT NULL DEFAULT 0");
+}
+
 // Validate a quantity destined for main_inventory (no negatives, no NaN/floats)
 function assertValidQuantity(quantity) {
   if (!Number.isInteger(quantity) || quantity < 0) {
@@ -111,9 +122,13 @@ const dbHelpers = {
     return db.prepare('SELECT * FROM species WHERE name = ?').get(name);
   },
 
-  createSpecies(name) {
-    const result = db.prepare('INSERT INTO species (name) VALUES (?)').run(name);
+  createSpecies(name, treesPerBox = 180) {
+    const result = db.prepare('INSERT INTO species (name, trees_per_box) VALUES (?, ?)').run(name, treesPerBox);
     return result.lastInsertRowid;
+  },
+
+  setTreesPerBox(speciesId, treesPerBox) {
+    return db.prepare('UPDATE species SET trees_per_box = ? WHERE id = ?').run(treesPerBox, speciesId);
   },
 
   getAllSpecies() {
@@ -274,28 +289,48 @@ const dbHelpers = {
     `).all(section);
   },
 
+  // Totals in both boxes and stems (stems = boxes*trees_per_box + partial_stems)
   getDropsBySectionAndKey(section, requestKeyId) {
     return db.prepare(`
-      SELECT COALESCE(SUM(quantity), 0) as total_dropped
-      FROM drop_history
-      WHERE section = ? AND request_key_id = ?
+      SELECT
+        COALESCE(SUM(dh.quantity), 0) as total_dropped,
+        COALESCE(SUM(dh.partial_stems), 0) as total_partial_stems,
+        COALESCE(SUM(dh.quantity * s.trees_per_box + dh.partial_stems), 0) as total_stems
+      FROM drop_history dh
+      JOIN request_keys rk ON dh.request_key_id = rk.id
+      JOIN species s ON rk.species_id = s.id
+      WHERE dh.section = ? AND dh.request_key_id = ?
     `).get(section, requestKeyId);
   },
 
-  addDrop(section, requestKeyId, quantity, droppedBy) {
+  addDrop(section, requestKeyId, quantity, droppedBy, partialStems = 0, createdAt = null) {
+    if (createdAt) {
+      const result = db.prepare(
+        'INSERT INTO drop_history (section, request_key_id, quantity, partial_stems, dropped_by, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+      ).run(section, requestKeyId, quantity, partialStems, droppedBy, createdAt);
+      return result.lastInsertRowid;
+    }
     const result = db.prepare(
-      'INSERT INTO drop_history (section, request_key_id, quantity, dropped_by) VALUES (?, ?, ?, ?)'
-    ).run(section, requestKeyId, quantity, droppedBy);
+      'INSERT INTO drop_history (section, request_key_id, quantity, partial_stems, dropped_by) VALUES (?, ?, ?, ?, ?)'
+    ).run(section, requestKeyId, quantity, partialStems, droppedBy);
     return result.lastInsertRowid;
+  },
+
+  addActivityLogAt(userPhone, action, requestKey, quantity, section, createdAt) {
+    db.prepare(
+      'INSERT INTO activity_logs (user_phone, action, request_key, quantity, section, target_section, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    ).run(userPhone, action, requestKey, quantity, section, null, createdAt);
   },
 
   // Atomic drop: drop record + inventory decrement + activity log + undo history.
   // All four writes commit together or roll back together. Returns the new drop id.
-  performDrop({ section, requestKeyId, requestKey, quantity, newInventoryQty, from }) {
+  // quantity = whole boxes, partialStems = loose stems; inventory is debited
+  // quantity boxes + partialStems stems converted via treesPerBox (tracked as stems).
+  performDrop({ section, requestKeyId, requestKey, quantity, partialStems = 0, newInventoryQty, from }) {
     const run = db.transaction(() => {
       const dropId = db.prepare(
-        'INSERT INTO drop_history (section, request_key_id, quantity, dropped_by) VALUES (?, ?, ?, ?)'
-      ).run(section, requestKeyId, quantity, from).lastInsertRowid;
+        'INSERT INTO drop_history (section, request_key_id, quantity, partial_stems, dropped_by) VALUES (?, ?, ?, ?, ?)'
+      ).run(section, requestKeyId, quantity, partialStems, from).lastInsertRowid;
 
       assertValidQuantity(newInventoryQty);
       db.prepare("UPDATE main_inventory SET quantity = ?, updated_at = datetime('now') WHERE request_key_id = ?")
@@ -313,6 +348,7 @@ const dbHelpers = {
         requestKey,
         section,
         quantity,
+        partialStems,
         newInventory: newInventoryQty
       }));
 

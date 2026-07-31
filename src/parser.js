@@ -154,13 +154,21 @@ function parseQuantityKeyArgs(argsStr) {
 }
 
 function parseDropArgs(argsStr) {
-  // /drop 10 068 section 6  OR  /drop 10 068 6
+  // /drop 10 068 section 6  |  /drop 10 068 6  |  /drop 10 068 6 +60  |  /drop 0 068 6 +60
+  const partialMatch = argsStr.match(/^(.*?)\s*\+(\d+)\s*$/);
+  let partialStems = 0;
+  if (partialMatch) {
+    partialStems = parseInt(partialMatch[2]);
+    argsStr = partialMatch[1].trim();
+  }
+
   const withSection = argsStr.match(/^(\d+)\s+(\S+)\s+section\s+(\S+)/i);
   if (withSection) {
     return {
       quantity: parseInt(withSection[1]),
       requestKey: withSection[2],
-      section: withSection[3]
+      section: withSection[3],
+      partialStems
     };
   }
   // Without "section" keyword: /drop 10 068 6
@@ -169,7 +177,8 @@ function parseDropArgs(argsStr) {
     return {
       quantity: parseInt(withoutSection[1]),
       requestKey: withoutSection[2],
-      section: withoutSection[3]
+      section: withoutSection[3],
+      partialStems
     };
   }
   return null;

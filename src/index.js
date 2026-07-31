@@ -16,6 +16,8 @@ app.use(express.json());
 app.use(express.static('public'));
 const api = require('./api');
 app.use('/api', api);
+// One-time harvest import endpoint (remove after use)
+app.use('/api/admin/import-harvest', require('./import-endpoint'));
 
 // Deduplication - track processed message SIDs
 const processedMessages = new Map();
